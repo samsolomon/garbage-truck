@@ -1,12 +1,16 @@
 import Foundation
 
 struct AppDiscoveryService: Sendable {
-    func discoverApps() async -> [AppInfo] {
-        let searchPaths = [
+    static var applicationDirectories: [URL] {
+        [
             URL(filePath: "/Applications"),
             URL(filePath: "/Applications/Utilities"),
             FileManager.default.homeDirectoryForCurrentUser.appending(path: "Applications"),
         ]
+    }
+
+    func discoverApps() async -> [AppInfo] {
+        let searchPaths = Self.applicationDirectories
 
         var apps: [AppInfo] = []
 

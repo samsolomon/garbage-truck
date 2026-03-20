@@ -25,6 +25,7 @@ final class AppState {
     private let fileScanner = FileScanner()
     private let deletionManager = DeletionManager()
     private let runningAppDetector = RunningAppDetector()
+    private var directoryMonitor: DirectoryMonitor?
 
     private static let maxUndoHistory = 10
     private static let smartDeleteKey = "smartDeleteEnabled"
@@ -59,6 +60,20 @@ final class AppState {
         }
         recheckPermissions()
         isLoadingApps = false
+        startDirectoryMonitor()
+    }
+
+    private func startDirectoryMonitor() {
+        guard directoryMonitor == nil else { return }
+        directoryMonitor = DirectoryMonitor(directories: AppDiscoveryService.applicationDirectories) { [weak self] in
+            Task { @MainActor in
+                await self?.checkForRemovedApps()
+                if self?.smartDeleteApp != nil {
+                    NSApp.activate()
+                }
+            }
+        }
+        directoryMonitor?.start()
     }
 
     func recheckPermissions() {
