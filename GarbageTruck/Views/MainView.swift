@@ -44,6 +44,7 @@ struct MainView: View {
                 }
                 .navigationTitle("Garbage Truck")
                 .navigationBarBackButtonHidden()
+                .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
                 .task {
                     await appState.scanApp(app)
                 }
