@@ -21,6 +21,9 @@ struct GarbageTruckApp: App {
                 .keyboardShortcut("z", modifiers: .command)
                 .disabled(appState.deletionHistory.isEmpty)
             }
+            CommandGroup(after: .appSettings) {
+                Toggle("Smart Delete", isOn: Bindable(appState).isSmartDeleteEnabled)
+            }
         }
     }
 }

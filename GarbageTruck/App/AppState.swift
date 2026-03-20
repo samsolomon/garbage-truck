@@ -13,13 +13,26 @@ final class AppState {
     var showDeleteConfirmation = false
     var deletionResultMessage: String? = nil
     var skippedDirectoryCount = 0
+    var smartDeleteApp: AppInfo? = nil
+    var isSmartDeleteEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: Self.smartDeleteKey) }
+        set { UserDefaults.standard.set(newValue, forKey: Self.smartDeleteKey) }
+    }
 
+    private var previousAppIDs: Set<URL> = []
+    private var lastRemovalCheckDate: Date?
     private let discoveryService = AppDiscoveryService()
     private let fileScanner = FileScanner()
     private let deletionManager = DeletionManager()
     let runningAppDetector = RunningAppDetector()
 
     private static let maxUndoHistory = 10
+    private static let smartDeleteKey = "smartDeleteEnabled"
+    private static let removalCheckInterval: TimeInterval = 5
+
+    init() {
+        UserDefaults.standard.register(defaults: [Self.smartDeleteKey: true])
+    }
 
     var filteredApps: [AppInfo] {
         if searchText.isEmpty { return allApps }
@@ -39,6 +52,7 @@ final class AppState {
 
     func loadApps() async {
         isLoadingApps = true
+        previousAppIDs = Set(allApps.map(\.id))
         allApps = await discoveryService.discoverApps()
         recheckPermissions()
         isLoadingApps = false
@@ -130,5 +144,47 @@ final class AppState {
         } catch {
             deletionResultMessage = "Undo failed: \(error.localizedDescription)"
         }
+    }
+
+    func checkForRemovedApps() async {
+        guard isSmartDeleteEnabled, !previousAppIDs.isEmpty else { return }
+
+        // Throttle: skip if checked recently
+        if let last = lastRemovalCheckDate, Date.now.timeIntervalSince(last) < Self.removalCheckInterval {
+            return
+        }
+        lastRemovalCheckDate = .now
+
+        let oldApps = allApps
+        let freshApps = await discoveryService.discoverApps()
+        let freshIDs = Set(freshApps.map(\.id))
+        let removedIDs = previousAppIDs.subtracting(freshIDs)
+
+        if freshApps != allApps {
+            allApps = freshApps
+        }
+        previousAppIDs = freshIDs
+
+        let selfBundleURL = Bundle.main.bundleURL
+        let fm = FileManager.default
+
+        for id in removedIDs {
+            guard let app = oldApps.first(where: { $0.id == id }) else { continue }
+            // Skip system apps and GarbageTruck itself (cheap, in-memory)
+            if app.isSystemApp || app.id == selfBundleURL { continue }
+            // Skip apps that are still running
+            if runningAppDetector.isRunning(bundleIdentifier: app.bundleIdentifier) { continue }
+            // Skip if the .app still exists on disk (e.g. moved, not deleted)
+            if fm.fileExists(atPath: app.id.path()) { continue }
+
+            smartDeleteApp = app
+            return
+        }
+    }
+
+    func handleSmartDelete() {
+        guard let app = smartDeleteApp else { return }
+        smartDeleteApp = nil
+        navigationPath = [app]
     }
 }
