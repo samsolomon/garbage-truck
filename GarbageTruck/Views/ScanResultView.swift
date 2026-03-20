@@ -57,6 +57,11 @@ struct ScanResultView: View {
         .task(id: scanResult.app.id) {
             await computeAllSizes()
         }
+        .background {
+            Button("") { dismiss() }
+                .keyboardShortcut(.escape, modifiers: [])
+                .hidden()
+        }
         .alert("Confirm Deletion", isPresented: $appState.showDeleteConfirmation) {
             Button("Move to Trash", role: .destructive) {
                 appState.deleteSelectedFiles()

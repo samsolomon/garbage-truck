@@ -32,7 +32,7 @@ struct MainView: View {
                 .padding(.vertical, 8)
             }
             .navigationTitle("Garbage Truck")
-            .toolbarBackgroundVisibility(.visible, for: .windowToolbar)
+            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
             .navigationDestination(for: AppInfo.self) { app in
                 Group {
                     if let scan = appState.currentScan, scan.app == app, !appState.isScanning {
