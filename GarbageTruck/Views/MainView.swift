@@ -77,14 +77,20 @@ struct MainView: View {
         return List(appState.filteredApps, selection: $selectedAppID) { app in
             AppRowView(app: app)
                 .tag(app.id)
-                .contentShape(Rectangle())
-                .simultaneousGesture(TapGesture().onEnded { navigate(to: app) })
         }
         .focused($focusedField, equals: .list)
+        .onChange(of: selectedAppID) { _, _ in
+            // Check NSApp.currentEvent so arrow-key selection only highlights
+            // without navigating. List(selection:) fires onChange for both mouse
+            // and keyboard, so we restrict navigation to mouse clicks here.
+            guard let app = selectedApp,
+                  let event = NSApp.currentEvent,
+                  event.type == .leftMouseDown || event.type == .leftMouseUp
+            else { return }
+            navigate(to: app)
+        }
         .onKeyPress(.return) {
-            guard let selectedAppID,
-                  let app = appState.filteredApps.first(where: { $0.id == selectedAppID })
-            else { return .ignored }
+            guard let app = selectedApp else { return .ignored }
             navigate(to: app)
             return .handled
         }
@@ -192,6 +198,11 @@ struct MainView: View {
                 await appState.scanApp(app)
             }
         }
+    }
+
+    private var selectedApp: AppInfo? {
+        guard let selectedAppID else { return nil }
+        return appState.filteredApps.first(where: { $0.id == selectedAppID })
     }
 
     private func navigate(to app: AppInfo) {
