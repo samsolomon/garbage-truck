@@ -19,6 +19,7 @@ struct MainView: View {
             List(appState.filteredApps, selection: $selectedAppID) { app in
                 AppRowView(app: app)
                     .tag(app.id)
+                    .onTapGesture { navigate(to: app) }
             }
             .focused($focusedField, equals: .list)
             .onKeyPress(.return) {
@@ -106,6 +107,13 @@ struct MainView: View {
             }
         }
         .onAppear { focusedField = .search }
+        .onChange(of: appState.navigationPath) {
+            if appState.navigationPath.isEmpty {
+                appState.searchText = ""
+                selectedAppID = nil
+                focusedField = .search
+            }
+        }
         .onChange(of: appState.searchText) {
             let newID = appState.filteredApps.first?.id
             if selectedAppID != newID { selectedAppID = newID }
