@@ -28,7 +28,24 @@
 		A10000010000000000000019 /* SizeLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000019; };
 		A10000010000000000000020 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000020; };
 		A10000010000000000000021 /* PathSafety.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000023; };
+		B10000010000000000000001 /* MatchingEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000001; };
+		B10000010000000000000002 /* AppInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000002; };
+		B10000010000000000000003 /* PathSafetyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000003; };
+		B10000010000000000000004 /* DeletionManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000004; };
+		B10000010000000000000005 /* AppStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000005; };
+		B10000010000000000000006 /* FileScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000006; };
+		B10000010000000000000007 /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000007; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B100000B0000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000090000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000060000000000000001;
+			remoteInfo = GarbageTruck;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A10000020000000000000001 /* GarbageTruckApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarbageTruckApp.swift; sourceTree = "<group>"; };
@@ -55,10 +72,25 @@
 		A10000020000000000000022 /* GarbageTruck.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GarbageTruck.entitlements; sourceTree = "<group>"; };
 		A10000020000000000000023 /* PathSafety.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathSafety.swift; sourceTree = "<group>"; };
 		A10000030000000000000001 /* GarbageTruck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GarbageTruck.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10000020000000000000001 /* MatchingEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchingEngineTests.swift; sourceTree = "<group>"; };
+		B10000020000000000000002 /* AppInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfoTests.swift; sourceTree = "<group>"; };
+		B10000020000000000000003 /* PathSafetyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathSafetyTests.swift; sourceTree = "<group>"; };
+		B10000020000000000000004 /* DeletionManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletionManagerTests.swift; sourceTree = "<group>"; };
+		B10000020000000000000005 /* AppStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateTests.swift; sourceTree = "<group>"; };
+		B10000020000000000000006 /* FileScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileScannerTests.swift; sourceTree = "<group>"; };
+		B10000020000000000000007 /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
+		B10000030000000000000001 /* GarbageTruckTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GarbageTruckTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A10000040000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B10000040000000000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -72,6 +104,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000050000000000000001 /* GarbageTruck */,
+				B10000050000000000000001 /* GarbageTruckTests */,
 				A10000050000000000000099 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -80,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000030000000000000001 /* GarbageTruck.app */,
+				B10000030000000000000001 /* GarbageTruckTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -162,6 +196,20 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		B10000050000000000000001 /* GarbageTruckTests */ = {
+			isa = PBXGroup;
+			children = (
+				B10000020000000000000001 /* MatchingEngineTests.swift */,
+				B10000020000000000000002 /* AppInfoTests.swift */,
+				B10000020000000000000003 /* PathSafetyTests.swift */,
+				B10000020000000000000004 /* DeletionManagerTests.swift */,
+				B10000020000000000000005 /* AppStateTests.swift */,
+				B10000020000000000000006 /* FileScannerTests.swift */,
+				B10000020000000000000007 /* TestHelpers.swift */,
+			);
+			path = GarbageTruckTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -182,6 +230,23 @@
 			productReference = A10000030000000000000001 /* GarbageTruck.app */;
 			productType = "com.apple.product-type.application";
 		};
+		B10000060000000000000001 /* GarbageTruckTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B10000080000000000000001 /* Build configuration list for PBXNativeTarget "GarbageTruckTests" */;
+			buildPhases = (
+				B10000070000000000000001 /* Sources */,
+				B10000040000000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B100000C0000000000000001 /* PBXTargetDependency */,
+			);
+			name = GarbageTruckTests;
+			productName = GarbageTruckTests;
+			productReference = B10000030000000000000001 /* GarbageTruckTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -194,6 +259,10 @@
 				TargetAttributes = {
 					A10000060000000000000001 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					B10000060000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A10000060000000000000001;
 					};
 				};
 			};
@@ -211,6 +280,7 @@
 			projectRoot = "";
 			targets = (
 				A10000060000000000000001 /* GarbageTruck */,
+				B10000060000000000000001 /* GarbageTruckTests */,
 			);
 		};
 /* End PBXProject section */
@@ -254,7 +324,29 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B10000070000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B10000010000000000000001 /* MatchingEngineTests.swift in Sources */,
+				B10000010000000000000002 /* AppInfoTests.swift in Sources */,
+				B10000010000000000000003 /* PathSafetyTests.swift in Sources */,
+				B10000010000000000000004 /* DeletionManagerTests.swift in Sources */,
+				B10000010000000000000005 /* AppStateTests.swift in Sources */,
+				B10000010000000000000006 /* FileScannerTests.swift in Sources */,
+				B10000010000000000000007 /* TestHelpers.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B100000C0000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000060000000000000001 /* GarbageTruck */;
+			targetProxy = B100000B0000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A100000A0000000000000001 /* Debug */ = {
@@ -433,6 +525,40 @@
 			};
 			name = Release;
 		};
+		B100000A0000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.garbagetruck.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GarbageTruck.app/Contents/MacOS/GarbageTruck";
+			};
+			name = Debug;
+		};
+		B100000A0000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.garbagetruck.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GarbageTruck.app/Contents/MacOS/GarbageTruck";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -450,6 +576,15 @@
 			buildConfigurations = (
 				A100000A0000000000000001 /* Debug */,
 				A100000A0000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B10000080000000000000001 /* Build configuration list for PBXNativeTarget "GarbageTruckTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B100000A0000000000000001 /* Debug */,
+				B100000A0000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -27,7 +27,7 @@ struct AppInfo: Identifiable, Hashable, Sendable {
         hasher.combine(id)
     }
 
-    private static func generateNameVariants(_ name: String) -> [String] {
+    static func generateNameVariants(_ name: String) -> [String] {
         var variants: [String] = [name]
 
         let lowercased = name.lowercased()
@@ -45,7 +45,7 @@ struct AppInfo: Identifiable, Hashable, Sendable {
             of: "\\d+$",
             with: "",
             options: .regularExpression
-        )
+        ).trimmingCharacters(in: .whitespaces)
         if !stripped.isEmpty && stripped != name && !variants.contains(stripped) {
             variants.append(stripped)
         }

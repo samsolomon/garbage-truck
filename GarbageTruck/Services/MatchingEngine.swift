@@ -35,7 +35,7 @@ struct MatchingEngine: Sendable {
         return matches
     }
 
-    private func matchItem(
+    func matchItem(
         itemName: String,
         itemURL: URL,
         isDirectory: Bool,
