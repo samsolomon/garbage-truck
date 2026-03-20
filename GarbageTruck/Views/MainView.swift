@@ -8,18 +8,13 @@ struct MainView: View {
         @Bindable var appState = appState
 
         NavigationStack(path: $appState.navigationPath) {
-            VStack(spacing: 0) {
-                DropBanner()
-                    .padding()
-
-                List(appState.filteredApps) { app in
-                    NavigationLink(value: app) {
-                        AppRowView(app: app)
-                    }
+            List(appState.filteredApps) { app in
+                NavigationLink(value: app) {
+                    AppRowView(app: app)
                 }
-                .listStyle(.inset)
             }
-            .searchable(text: $appState.searchText, prompt: "Search apps...")
+            .listStyle(.inset)
+            .searchable(text: $appState.searchText, placement: .toolbar, prompt: "Search apps...")
             .navigationTitle("Garbage Truck")
             .navigationDestination(for: AppInfo.self) { app in
                 Group {
