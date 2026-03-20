@@ -77,7 +77,8 @@ struct MainView: View {
         return List(appState.filteredApps, selection: $selectedAppID) { app in
             AppRowView(app: app)
                 .tag(app.id)
-                .onTapGesture { navigate(to: app) }
+                .contentShape(Rectangle())
+                .simultaneousGesture(TapGesture().onEnded { navigate(to: app) })
         }
         .focused($focusedField, equals: .list)
         .onKeyPress(.return) {
