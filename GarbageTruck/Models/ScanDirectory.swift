@@ -22,7 +22,6 @@ struct ScanDirectory: Sendable {
             ScanDirectory(url: lib.appending(path: "Cookies"), category: .other),
             ScanDirectory(url: lib.appending(path: "WebKit"), category: .other),
             ScanDirectory(url: lib.appending(path: "LaunchAgents"), category: .other),
-            ScanDirectory(url: lib.appending(path: "Application Scripts"), category: .other),
         ]
     }
 }
