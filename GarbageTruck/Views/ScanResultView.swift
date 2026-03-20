@@ -4,6 +4,7 @@ struct ScanResultView: View {
     let scanResult: ScanResult
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
+    @State private var showForceQuitAlert = false
 
     private var allSelected: Bool {
         appState.selectedFileIDs.count == scanResult.files.count
@@ -58,6 +59,14 @@ struct ScanResultView: View {
                 .keyboardShortcut(.escape, modifiers: [])
                 .hidden()
         }
+        .alert("Force Quit?", isPresented: $showForceQuitAlert) {
+            Button("Force Quit", role: .destructive) {
+                appState.forceTerminateApp(scanResult.app)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("\(scanResult.app.name) didn't respond to the quit request. Force quit?")
+        }
         .alert("Confirm Deletion", isPresented: $appState.showDeleteConfirmation) {
             Button("Move to Trash", role: .destructive) {
                 appState.deleteSelectedFiles()
@@ -95,15 +104,25 @@ struct ScanResultView: View {
                         .font(.title2)
                         .fontWeight(.semibold)
 
-                    if appState.runningAppDetector.isRunning(bundleIdentifier: scanResult.app.bundleIdentifier) {
-                        Text("Running")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(.orange.opacity(0.2))
-                            .foregroundStyle(.orange)
-                            .clipShape(Capsule())
+                    if appState.isAppRunning(scanResult.app) {
+                        Button {
+                            Task {
+                                let terminated = await appState.terminateApp(scanResult.app)
+                                if !terminated {
+                                    showForceQuitAlert = true
+                                }
+                            }
+                        } label: {
+                            Text("Running")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(.orange.opacity(0.2))
+                                .foregroundStyle(.orange)
+                                .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
 

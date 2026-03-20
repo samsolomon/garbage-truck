@@ -24,7 +24,7 @@ final class AppState {
     private let discoveryService = AppDiscoveryService()
     private let fileScanner = FileScanner()
     private let deletionManager = DeletionManager()
-    let runningAppDetector = RunningAppDetector()
+    private let runningAppDetector = RunningAppDetector()
 
     private static let maxUndoHistory = 10
     private static let smartDeleteKey = "smartDeleteEnabled"
@@ -93,6 +93,23 @@ final class AppState {
         }
 
         navigationPath = [app]
+    }
+
+    func isAppRunning(_ app: AppInfo) -> Bool {
+        runningAppDetector.isRunning(bundleIdentifier: app.bundleIdentifier)
+    }
+
+    func terminateApp(_ app: AppInfo) async -> Bool {
+        guard runningAppDetector.isRunning(bundleIdentifier: app.bundleIdentifier) else { return true }
+        let success = runningAppDetector.terminate(bundleIdentifier: app.bundleIdentifier)
+        if success {
+            try? await Task.sleep(for: .seconds(1))
+        }
+        return !runningAppDetector.isRunning(bundleIdentifier: app.bundleIdentifier)
+    }
+
+    func forceTerminateApp(_ app: AppInfo) {
+        runningAppDetector.forceTerminate(bundleIdentifier: app.bundleIdentifier)
     }
 
     func batchUpdateSizes(_ updates: [(url: URL, size: Int64)]) {
