@@ -14,7 +14,7 @@ struct AppRowView: View {
                     .fontWeight(.medium)
                     .lineLimit(1)
 
-                Text(app.bundleIdentifier)
+                Text(app.id.path(percentEncoded: false))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

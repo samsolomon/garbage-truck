@@ -107,9 +107,11 @@ struct ScanResultView: View {
                     }
                 }
 
-                Text("\(scanResult.files.count) files found")
+                Text(scanResult.app.id.path(percentEncoded: false))
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.head)
             }
 
             Spacer()
