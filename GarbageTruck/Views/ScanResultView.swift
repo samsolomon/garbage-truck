@@ -29,6 +29,11 @@ struct ScanResultView: View {
                     description: Text("No leftover files were found for \(scanResult.app.name).")
                 )
             } else {
+                footer
+                    .padding()
+
+                Divider()
+
                 List {
                     ForEach(groupedFiles, id: \.0) { category, files in
                         Section(category.rawValue) {
@@ -43,11 +48,6 @@ struct ScanResultView: View {
                     }
                 }
                 .listStyle(.inset(alternatesRowBackgrounds: true))
-
-                Divider()
-
-                footer
-                    .padding()
             }
 
             if !scanResult.skippedDirectories.isEmpty {

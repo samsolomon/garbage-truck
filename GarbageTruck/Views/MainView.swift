@@ -42,7 +42,7 @@ struct MainView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
-                .navigationTitle(app.name)
+                .navigationTitle("Garbage Truck")
                 .navigationBarBackButtonHidden()
                 .task {
                     await appState.scanApp(app)
