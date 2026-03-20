@@ -12,6 +12,7 @@ struct ConfidenceBadge: View {
             .background(backgroundColor.opacity(0.15))
             .foregroundStyle(backgroundColor)
             .clipShape(Capsule())
+            .help(confidence.tooltip)
     }
 
     private var backgroundColor: Color {

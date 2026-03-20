@@ -23,6 +23,13 @@ enum Confidence: Int, Comparable, CaseIterable, Sendable {
         case .medium: "Medium"
         }
     }
+
+    var tooltip: String {
+        switch self {
+        case .high: "High confidence this file belongs to the app — matched by bundle identifier"
+        case .medium: "Medium confidence — matched by app name, may be a false positive"
+        }
+    }
 }
 
 enum FileCategory: String, CaseIterable, Sendable {
