@@ -54,6 +54,9 @@ final class AppState {
         isLoadingApps = true
         previousAppIDs = Set(allApps.map(\.id))
         allApps = await discoveryService.discoverApps()
+        if previousAppIDs.isEmpty {
+            previousAppIDs = Set(allApps.map(\.id))
+        }
         recheckPermissions()
         isLoadingApps = false
     }
