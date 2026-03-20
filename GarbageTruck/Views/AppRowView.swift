@@ -3,6 +3,8 @@ import SwiftUI
 struct AppRowView: View {
     let app: AppInfo
 
+    @State private var sizeBytes: Int64?
+
     var body: some View {
         HStack(spacing: 10) {
             Image(nsImage: NSWorkspace.shared.icon(forFile: app.id.path()))
@@ -22,12 +24,14 @@ struct AppRowView: View {
 
             Spacer()
 
-            if let version = app.version {
-                Text(version)
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
+            SizeLabel(sizeBytes: sizeBytes)
+                .font(.callout)
         }
         .padding(.vertical, 2)
+        .task(id: app.id) {
+            sizeBytes = await Task.detached {
+                FileScanner.computeSize(for: app.id)
+            }.value
+        }
     }
 }
