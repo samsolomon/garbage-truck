@@ -48,6 +48,18 @@ struct ScanResultView: View {
                 footer
                     .padding()
             }
+
+            if !scanResult.skippedDirectories.isEmpty {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundStyle(.yellow)
+                    Text("\(scanResult.skippedDirectories.count) directories could not be scanned (Full Disk Access may be required)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 8)
+            }
         }
         .task(id: scanResult.app.id) {
             await computeAllSizes()
@@ -59,18 +71,6 @@ struct ScanResultView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Move \(appState.selectedFileIDs.count) files (\(formatSize(appState.selectedTotalSize))) to Trash?")
-        }
-
-        if !scanResult.skippedDirectories.isEmpty {
-            HStack {
-                Image(systemName: "exclamationmark.triangle")
-                    .foregroundStyle(.yellow)
-                Text("\(scanResult.skippedDirectories.count) directories could not be scanned (Full Disk Access may be required)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 8)
         }
     }
 
