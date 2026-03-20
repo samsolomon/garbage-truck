@@ -30,6 +30,15 @@ struct FileScanner: Sendable {
         var seen = Set<URL>()
         allFiles = allFiles.filter { seen.insert($0.id).inserted }
 
+        // Add the .app bundle itself as the primary item
+        allFiles.append(MatchedFile(
+            id: app.id,
+            confidence: .high,
+            matchReason: .bundleIDExact(app.bundleIdentifier),
+            category: .application,
+            isDirectory: true
+        ))
+
         // Sort: high confidence first, then by category, then by name
         allFiles.sort { a, b in
             if a.confidence != b.confidence { return a.confidence > b.confidence }

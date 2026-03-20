@@ -33,6 +33,7 @@ enum Confidence: Int, Comparable, CaseIterable, Sendable {
 }
 
 enum FileCategory: String, CaseIterable, Sendable {
+    case application = "Application"
     case applicationSupport = "Application Support"
     case preferences = "Preferences"
     case caches = "Caches"
@@ -40,13 +41,7 @@ enum FileCategory: String, CaseIterable, Sendable {
     case other = "Other"
 
     var sortOrder: Int {
-        switch self {
-        case .applicationSupport: 0
-        case .preferences: 1
-        case .caches: 2
-        case .containers: 3
-        case .other: 4
-        }
+        FileCategory.allCases.firstIndex(of: self)!
     }
 }
 

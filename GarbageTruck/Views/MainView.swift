@@ -18,7 +18,7 @@ struct MainView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
-                    TextField("Search apps...", text: $appState.searchText)
+                    TextField("Find apps to delete...", text: $appState.searchText)
                         .textFieldStyle(.plain)
                 }
                 .padding(.horizontal, 12)

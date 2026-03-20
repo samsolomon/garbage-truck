@@ -16,16 +16,22 @@ struct FileRowView: View {
             .toggleStyle(.checkbox)
             .labelsHidden()
 
-            Image(systemName: file.isDirectory ? "folder.fill" : "doc.fill")
-                .foregroundStyle(.secondary)
-                .frame(width: 16)
+            if file.category == .application {
+                Image(nsImage: NSWorkspace.shared.icon(forFile: file.id.path()))
+                    .resizable()
+                    .frame(width: 16, height: 16)
+            } else {
+                Image(systemName: file.isDirectory ? "folder.fill" : "doc.fill")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 16, height: 16)
+            }
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(file.id.lastPathComponent)
                     .lineLimit(1)
                     .truncationMode(.middle)
 
-                Text(file.matchReason.description)
+                Text(file.id.deletingLastPathComponent().path(percentEncoded: false))
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
                     .lineLimit(1)
