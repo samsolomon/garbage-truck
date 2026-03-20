@@ -16,95 +16,7 @@ struct MainView: View {
         @Bindable var appState = appState
 
         NavigationStack(path: $appState.navigationPath) {
-            List(appState.filteredApps, selection: $selectedAppID) { app in
-                AppRowView(app: app)
-                    .tag(app.id)
-                    .onTapGesture { navigate(to: app) }
-            }
-            .focused($focusedField, equals: .list)
-            .onKeyPress(.return) {
-                guard let selectedAppID,
-                      let app = appState.filteredApps.first(where: { $0.id == selectedAppID })
-                else { return .ignored }
-                navigate(to: app)
-                return .handled
-            }
-            .onKeyPress(.upArrow) {
-                guard let selectedAppID,
-                      appState.filteredApps.first?.id == selectedAppID
-                else { return .ignored }
-                focusedField = .search
-                return .handled
-            }
-            .listStyle(.inset)
-            .safeAreaInset(edge: .top, spacing: 0) {
-                HStack(spacing: 6) {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(.secondary)
-                    TextField("Find apps to delete...", text: $appState.searchText)
-                        .textFieldStyle(.plain)
-                        .focused($focusedField, equals: .search)
-                        .onKeyPress(.downArrow) {
-                            guard let firstID = appState.filteredApps.first?.id else { return .ignored }
-                            selectedAppID = firstID
-                            focusedField = .list
-                            return .handled
-                        }
-                        .onKeyPress(.return) {
-                            guard let app = appState.filteredApps.first else { return .ignored }
-                            navigate(to: app)
-                            return .handled
-                        }
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .background(.ultraThinMaterial, in: Capsule())
-                .overlay(
-                    Capsule()
-                        .strokeBorder(.white.opacity(0.15), lineWidth: 0.5)
-                )
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                if appState.skippedDirectoryCount > 0 {
-                    VStack(spacing: 0) {
-                        Divider()
-                        Button {
-                            NSWorkspace.shared.open(fdaSettingsURL)
-                        } label: {
-                            HStack {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .foregroundStyle(.yellow)
-                                Text("\(appState.skippedDirectoryCount) directories could not be scanned — grant Full Disk Access")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .padding(.vertical, 8)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .background(.ultraThinMaterial)
-                }
-            }
-            .navigationTitle("Garbage Truck")
-            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-            .navigationDestination(for: AppInfo.self) { app in
-                Group {
-                    if let scan = appState.currentScan, scan.app == app, !appState.isScanning {
-                        ScanResultView(scanResult: scan)
-                    } else {
-                        ProgressView("Scanning...")
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                }
-                .navigationTitle("Garbage Truck")
-                .navigationBarBackButtonHidden()
-                .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-                .task {
-                    await appState.scanApp(app)
-                }
-            }
+            listContent
         }
         .onAppear { focusedField = .search }
         .onChange(of: appState.navigationPath) {
@@ -126,6 +38,7 @@ struct MainView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             appState.recheckPermissions()
+            Task { await appState.checkForRemovedApps() }
         }
         .sheet(isPresented: $showFDASheet, onDismiss: {
             UserDefaults.standard.set(true, forKey: hasShownFDAPromptKey)
@@ -143,6 +56,127 @@ struct MainView: View {
         } message: {
             if let message = appState.deletionResultMessage {
                 Text(message)
+            }
+        }
+        .alert("App Removed", isPresented: .init(
+            get: { appState.smartDeleteApp != nil },
+            set: { if !$0 { appState.smartDeleteApp = nil } }
+        )) {
+            Button("Clean Up") { appState.handleSmartDelete() }
+            Button("Ignore", role: .cancel) { appState.smartDeleteApp = nil }
+        } message: {
+            if let app = appState.smartDeleteApp {
+                Text("\(app.name) was moved to Trash. Would you like to remove its leftover files?")
+            }
+        }
+    }
+
+    private var listContent: some View {
+        @Bindable var appState = appState
+
+        return List(appState.filteredApps, selection: $selectedAppID) { app in
+            AppRowView(app: app)
+                .tag(app.id)
+                .onTapGesture { navigate(to: app) }
+        }
+        .focused($focusedField, equals: .list)
+        .onKeyPress(.return) {
+            guard let selectedAppID,
+                  let app = appState.filteredApps.first(where: { $0.id == selectedAppID })
+            else { return .ignored }
+            navigate(to: app)
+            return .handled
+        }
+        .onKeyPress(.upArrow) {
+            guard let selectedAppID,
+                  appState.filteredApps.first?.id == selectedAppID
+            else { return .ignored }
+            focusedField = .search
+            return .handled
+        }
+        .onKeyPress(characters: .alphanumerics.union(.punctuationCharacters).union(.whitespaces)) { keyPress in
+            appState.searchText.append(keyPress.characters)
+            focusedField = .search
+            return .handled
+        }
+        .onKeyPress(.delete) {
+            guard !appState.searchText.isEmpty else { return .ignored }
+            appState.searchText.removeLast()
+            focusedField = .search
+            return .handled
+        }
+        .listStyle(.inset)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Find apps to delete...", text: $appState.searchText)
+                    .textFieldStyle(.plain)
+                    .focused($focusedField, equals: .search)
+                    .onKeyPress(.downArrow) {
+                        guard let firstID = appState.filteredApps.first?.id else { return .ignored }
+                        selectedAppID = firstID
+                        focusedField = .list
+                        return .handled
+                    }
+                    .onKeyPress(.return) {
+                        guard let app = appState.filteredApps.first else { return .ignored }
+                        navigate(to: app)
+                        return .handled
+                    }
+                    .onKeyPress(.escape) {
+                        guard !appState.searchText.isEmpty else { return .ignored }
+                        appState.searchText = ""
+                        return .handled
+                    }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(
+                Capsule()
+                    .strokeBorder(.white.opacity(0.15), lineWidth: 0.5)
+            )
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if appState.skippedDirectoryCount > 0 {
+                VStack(spacing: 0) {
+                    Divider()
+                    Button {
+                        NSWorkspace.shared.open(fdaSettingsURL)
+                    } label: {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle")
+                                .foregroundStyle(.yellow)
+                            Text("\(appState.skippedDirectoryCount) directories could not be scanned — grant Full Disk Access")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .background(.ultraThinMaterial)
+            }
+        }
+        .navigationTitle("Garbage Truck")
+        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+        .navigationDestination(for: AppInfo.self) { app in
+            Group {
+                if let scan = appState.currentScan, scan.app == app, !appState.isScanning {
+                    ScanResultView(scanResult: scan)
+                } else {
+                    ProgressView("Scanning...")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+            .navigationTitle("Garbage Truck")
+            .navigationBarBackButtonHidden()
+            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+            .task {
+                await appState.scanApp(app)
             }
         }
     }
