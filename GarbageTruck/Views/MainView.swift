@@ -107,6 +107,18 @@ struct MainView: View {
             return .handled
         }
         .listStyle(.inset)
+        .mask {
+            VStack(spacing: 0) {
+                LinearGradient(
+                    colors: [.clear, .black],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 16)
+                Color.black
+            }
+            .ignoresSafeArea()
+        }
         .safeAreaInset(edge: .top, spacing: 0) {
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass")
