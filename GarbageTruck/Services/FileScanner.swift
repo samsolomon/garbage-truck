@@ -1,0 +1,81 @@
+import Foundation
+
+struct FileScanner: Sendable {
+    private let matchingEngine = MatchingEngine()
+
+    func scan(app: AppInfo) async -> ScanResult {
+        let clock = ContinuousClock()
+        let start = clock.now
+
+        let directories = ScanDirectory.userDirectories()
+        var allFiles: [MatchedFile] = []
+        var skippedDirs: [URL] = []
+
+        await withTaskGroup(of: ([MatchedFile], URL?).self) { group in
+            for dir in directories {
+                group.addTask {
+                    let fm = FileManager()
+                    guard fm.isReadableFile(atPath: dir.url.path()) else {
+                        return ([], dir.url)
+                    }
+                    let matches = matchingEngine.findMatches(for: app, in: dir)
+                    return (matches, nil)
+                }
+            }
+
+            for await (files, skippedDir) in group {
+                allFiles.append(contentsOf: files)
+                if let skippedDir { skippedDirs.append(skippedDir) }
+            }
+        }
+
+        // Deduplicate by URL
+        var seen = Set<URL>()
+        allFiles = allFiles.filter { seen.insert($0.id).inserted }
+
+        // Sort: high confidence first, then by category, then by name
+        allFiles.sort { a, b in
+            if a.confidence != b.confidence { return a.confidence > b.confidence }
+            if a.category.sortOrder != b.category.sortOrder {
+                return a.category.sortOrder < b.category.sortOrder
+            }
+            return a.id.lastPathComponent.localizedCaseInsensitiveCompare(b.id.lastPathComponent) == .orderedAscending
+        }
+
+        let duration = clock.now - start
+
+        return ScanResult(
+            app: app,
+            files: allFiles,
+            scanDuration: duration,
+            skippedDirectories: skippedDirs
+        )
+    }
+
+    static func computeSize(for url: URL) -> Int64 {
+        let fm = FileManager()
+        let keys: Set<URLResourceKey> = [.totalFileAllocatedSizeKey, .isDirectoryKey]
+
+        guard let values = try? url.resourceValues(forKeys: keys) else { return 0 }
+
+        if values.isDirectory == true {
+            var total: Int64 = 0
+            if let enumerator = fm.enumerator(
+                at: url,
+                includingPropertiesForKeys: [.totalFileAllocatedSizeKey],
+                options: [.skipsHiddenFiles]
+            ) {
+                for case let fileURL as URL in enumerator {
+                    if let fileValues = try? fileURL.resourceValues(forKeys: [.totalFileAllocatedSizeKey]),
+                       let size = fileValues.totalFileAllocatedSize
+                    {
+                        total += Int64(size)
+                    }
+                }
+            }
+            return total
+        } else {
+            return Int64(values.totalFileAllocatedSize ?? 0)
+        }
+    }
+}
