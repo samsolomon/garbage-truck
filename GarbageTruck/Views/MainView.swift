@@ -14,16 +14,22 @@ struct MainView: View {
                 }
             }
             .listStyle(.inset)
-            .safeAreaInset(edge: .top) {
+            .safeAreaInset(edge: .top, spacing: 0) {
                 HStack(spacing: 6) {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
                     TextField("Search apps...", text: $appState.searchText)
                         .textFieldStyle(.plain)
                 }
-                .padding(7)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
-                .padding()
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(.ultraThinMaterial, in: Capsule())
+                .overlay(
+                    Capsule()
+                        .strokeBorder(.white.opacity(0.15), lineWidth: 0.5)
+                )
+                .padding(.horizontal)
+                .padding(.vertical, 8)
             }
             .navigationTitle("Garbage Truck")
             .toolbarBackgroundVisibility(.visible, for: .windowToolbar)
