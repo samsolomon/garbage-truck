@@ -38,6 +38,15 @@ struct FileRowView: View {
 
             SizeLabel(sizeBytes: file.sizeBytes)
                 .frame(width: 70, alignment: .trailing)
+
+            Button {
+                NSWorkspace.shared.selectFile(file.id.path(), inFileViewerRootedAtPath: "")
+            } label: {
+                Image(systemName: "arrow.right.circle")
+                    .foregroundStyle(.tertiary)
+            }
+            .buttonStyle(.plain)
+            .help("Reveal in Finder")
         }
         .contentShape(Rectangle())
         .onTapGesture { onToggle() }
