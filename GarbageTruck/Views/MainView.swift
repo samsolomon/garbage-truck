@@ -7,16 +7,33 @@ private let hasShownFDAPromptKey = "hasShownFDAPrompt"
 struct MainView: View {
     @Environment(AppState.self) private var appState
     @State private var showFDASheet = false
-    @FocusState private var isSearchFocused: Bool
+    @State private var selectedAppID: URL?
+
+    private enum FocusField { case search, list }
+    @FocusState private var focusedField: FocusField?
 
     var body: some View {
         @Bindable var appState = appState
 
         NavigationStack(path: $appState.navigationPath) {
-            List(appState.filteredApps) { app in
-                NavigationLink(value: app) {
-                    AppRowView(app: app)
-                }
+            List(appState.filteredApps, selection: $selectedAppID) { app in
+                AppRowView(app: app)
+                    .tag(app.id)
+            }
+            .focused($focusedField, equals: .list)
+            .onKeyPress(.return) {
+                guard let selectedAppID,
+                      let app = appState.filteredApps.first(where: { $0.id == selectedAppID })
+                else { return .ignored }
+                navigate(to: app)
+                return .handled
+            }
+            .onKeyPress(.upArrow) {
+                guard let selectedAppID,
+                      appState.filteredApps.first?.id == selectedAppID
+                else { return .ignored }
+                focusedField = .search
+                return .handled
             }
             .listStyle(.inset)
             .safeAreaInset(edge: .top, spacing: 0) {
@@ -25,7 +42,18 @@ struct MainView: View {
                         .foregroundStyle(.secondary)
                     TextField("Find apps to delete...", text: $appState.searchText)
                         .textFieldStyle(.plain)
-                        .focused($isSearchFocused)
+                        .focused($focusedField, equals: .search)
+                        .onKeyPress(.downArrow) {
+                            guard let firstID = appState.filteredApps.first?.id else { return .ignored }
+                            selectedAppID = firstID
+                            focusedField = .list
+                            return .handled
+                        }
+                        .onKeyPress(.return) {
+                            guard let app = appState.filteredApps.first else { return .ignored }
+                            navigate(to: app)
+                            return .handled
+                        }
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
@@ -77,7 +105,11 @@ struct MainView: View {
                 }
             }
         }
-        .onAppear { isSearchFocused = true }
+        .onAppear { focusedField = .search }
+        .onChange(of: appState.searchText) {
+            let newID = appState.filteredApps.first?.id
+            if selectedAppID != newID { selectedAppID = newID }
+        }
         .task {
             await appState.loadApps()
             if appState.skippedDirectoryCount > 0 && !UserDefaults.standard.bool(forKey: hasShownFDAPromptKey) {
@@ -105,6 +137,10 @@ struct MainView: View {
                 Text(message)
             }
         }
+    }
+
+    private func navigate(to app: AppInfo) {
+        appState.navigationPath = [app]
     }
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
