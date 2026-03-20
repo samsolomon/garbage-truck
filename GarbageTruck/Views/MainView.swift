@@ -31,6 +31,22 @@ struct MainView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 8)
             }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if appState.skippedDirectoryCount > 0 {
+                    VStack(spacing: 0) {
+                        Divider()
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle")
+                                .foregroundStyle(.yellow)
+                            Text("\(appState.skippedDirectoryCount) directories could not be scanned (Full Disk Access may be required)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 8)
+                    }
+                    .background(.ultraThinMaterial)
+                }
+            }
             .navigationTitle("Garbage Truck")
             .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
             .navigationDestination(for: AppInfo.self) { app in

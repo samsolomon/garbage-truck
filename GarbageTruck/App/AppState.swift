@@ -12,6 +12,7 @@ final class AppState {
     var navigationPath: [AppInfo] = []
     var showDeleteConfirmation = false
     var deletionResultMessage: String? = nil
+    var skippedDirectoryCount = 0
 
     private let discoveryService = AppDiscoveryService()
     private let fileScanner = FileScanner()
@@ -39,6 +40,9 @@ final class AppState {
     func loadApps() async {
         isLoadingApps = true
         allApps = await discoveryService.discoverApps()
+        skippedDirectoryCount = ScanDirectory.userDirectories()
+            .filter { !FileManager.default.isReadableFile(atPath: $0.url.path()) }
+            .count
         isLoadingApps = false
     }
 
