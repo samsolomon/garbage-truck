@@ -8,19 +8,25 @@ struct MainView: View {
         @Bindable var appState = appState
 
         NavigationStack(path: $appState.navigationPath) {
-            VStack(spacing: 0) {
-                TextField("Search apps...", text: $appState.searchText)
-                    .textFieldStyle(.roundedBorder)
-                    .padding()
-
-                List(appState.filteredApps) { app in
-                    NavigationLink(value: app) {
-                        AppRowView(app: app)
-                    }
+            List(appState.filteredApps) { app in
+                NavigationLink(value: app) {
+                    AppRowView(app: app)
                 }
-                .listStyle(.inset)
+            }
+            .listStyle(.inset)
+            .safeAreaInset(edge: .top) {
+                HStack(spacing: 6) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                    TextField("Search apps...", text: $appState.searchText)
+                        .textFieldStyle(.plain)
+                }
+                .padding(7)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+                .padding()
             }
             .navigationTitle("Garbage Truck")
+            .toolbarBackgroundVisibility(.visible, for: .windowToolbar)
             .navigationDestination(for: AppInfo.self) { app in
                 Group {
                     if let scan = appState.currentScan, scan.app == app, !appState.isScanning {
