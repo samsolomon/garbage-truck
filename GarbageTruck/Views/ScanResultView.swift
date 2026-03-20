@@ -3,6 +3,7 @@ import SwiftUI
 struct ScanResultView: View {
     let scanResult: ScanResult
     @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
 
     private var groupedFiles: [(FileCategory, [MatchedFile])] {
         let grouped = Dictionary(grouping: scanResult.files, by: \.category)
@@ -76,6 +77,21 @@ struct ScanResultView: View {
 
     private var header: some View {
         HStack(spacing: 12) {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(8)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .overlay(
+                        Circle()
+                            .strokeBorder(.white.opacity(0.15), lineWidth: 0.5)
+                    )
+            }
+            .buttonStyle(.plain)
+
             Image(nsImage: NSWorkspace.shared.icon(forFile: scanResult.app.id.path()))
                 .resizable()
                 .frame(width: 48, height: 48)

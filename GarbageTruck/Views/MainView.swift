@@ -43,6 +43,7 @@ struct MainView: View {
                     }
                 }
                 .navigationTitle(app.name)
+                .navigationBarBackButtonHidden()
                 .task {
                     await appState.scanApp(app)
                 }
