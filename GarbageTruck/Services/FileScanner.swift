@@ -9,23 +9,20 @@ struct FileScanner: Sendable {
 
         let directories = ScanDirectory.userDirectories()
         var allFiles: [MatchedFile] = []
-        var skippedDirs: [URL] = []
 
-        await withTaskGroup(of: ([MatchedFile], URL?).self) { group in
+        await withTaskGroup(of: [MatchedFile].self) { group in
             for dir in directories {
                 group.addTask {
                     let fm = FileManager()
                     guard fm.isReadableFile(atPath: dir.url.path()) else {
-                        return ([], dir.url)
+                        return []
                     }
-                    let matches = matchingEngine.findMatches(for: app, in: dir)
-                    return (matches, nil)
+                    return matchingEngine.findMatches(for: app, in: dir)
                 }
             }
 
-            for await (files, skippedDir) in group {
+            for await files in group {
                 allFiles.append(contentsOf: files)
-                if let skippedDir { skippedDirs.append(skippedDir) }
             }
         }
 
@@ -47,8 +44,7 @@ struct FileScanner: Sendable {
         return ScanResult(
             app: app,
             files: allFiles,
-            scanDuration: duration,
-            skippedDirectories: skippedDirs
+            scanDuration: duration
         )
     }
 

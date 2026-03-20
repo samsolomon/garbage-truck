@@ -12,12 +12,7 @@ struct ScanResultView: View {
     var body: some View {
         @Bindable var appState = appState
 
-        VStack(spacing: 0) {
-            header
-                .padding()
-
-            Divider()
-
+        Group {
             if scanResult.files.isEmpty {
                 ContentUnavailableView(
                     "No Files Found",
@@ -35,13 +30,25 @@ struct ScanResultView: View {
                     }
                 }
                 .listStyle(.inset(alternatesRowBackgrounds: true))
-
-                Divider()
-
-                footer
-                    .padding()
             }
-
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            VStack(spacing: 0) {
+                header
+                    .padding()
+                Divider()
+            }
+            .background(.ultraThinMaterial)
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if !scanResult.files.isEmpty {
+                VStack(spacing: 0) {
+                    Divider()
+                    footer
+                        .padding()
+                }
+                .background(.ultraThinMaterial)
+            }
         }
         .task(id: scanResult.app.id) {
             await computeAllSizes()
