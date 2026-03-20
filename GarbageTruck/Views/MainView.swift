@@ -1,8 +1,13 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+private let fdaSettingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!
+private let hasShownFDAPromptKey = "hasShownFDAPrompt"
+
 struct MainView: View {
     @Environment(AppState.self) private var appState
+    @State private var showFDASheet = false
+    @FocusState private var isSearchFocused: Bool
 
     var body: some View {
         @Bindable var appState = appState
@@ -20,6 +25,7 @@ struct MainView: View {
                         .foregroundStyle(.secondary)
                     TextField("Find apps to delete...", text: $appState.searchText)
                         .textFieldStyle(.plain)
+                        .focused($isSearchFocused)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
@@ -35,14 +41,19 @@ struct MainView: View {
                 if appState.skippedDirectoryCount > 0 {
                     VStack(spacing: 0) {
                         Divider()
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle")
-                                .foregroundStyle(.yellow)
-                            Text("\(appState.skippedDirectoryCount) directories could not be scanned (Full Disk Access may be required)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        Button {
+                            NSWorkspace.shared.open(fdaSettingsURL)
+                        } label: {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .foregroundStyle(.yellow)
+                                Text("\(appState.skippedDirectoryCount) directories could not be scanned — grant Full Disk Access")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.vertical, 8)
                         }
-                        .padding(.vertical, 8)
+                        .buttonStyle(.plain)
                     }
                     .background(.ultraThinMaterial)
                 }
@@ -66,8 +77,20 @@ struct MainView: View {
                 }
             }
         }
+        .onAppear { isSearchFocused = true }
         .task {
             await appState.loadApps()
+            if appState.skippedDirectoryCount > 0 && !UserDefaults.standard.bool(forKey: hasShownFDAPromptKey) {
+                showFDASheet = true
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            appState.recheckPermissions()
+        }
+        .sheet(isPresented: $showFDASheet, onDismiss: {
+            UserDefaults.standard.set(true, forKey: hasShownFDAPromptKey)
+        }) {
+            FDAOnboardingSheet(isPresented: $showFDASheet)
         }
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             handleDrop(providers)
@@ -97,5 +120,43 @@ struct MainView: View {
             }
         }
         return true
+    }
+}
+
+private struct FDAOnboardingSheet: View {
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "lock.shield")
+                .font(.system(size: 48))
+                .foregroundStyle(.secondary)
+
+            Text("Full Disk Access Required")
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            Text("Garbage Truck needs Full Disk Access to scan ~/Library/ and find files associated with your apps. Without it, some directories will be skipped.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            VStack(spacing: 10) {
+                Button("Open System Settings") {
+                    NSWorkspace.shared.open(fdaSettingsURL)
+                    isPresented = false
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button("Later") {
+                    isPresented = false
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+            }
+            .padding(.top, 4)
+        }
+        .padding(32)
+        .frame(width: 380)
     }
 }

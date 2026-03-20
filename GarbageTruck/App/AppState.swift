@@ -40,10 +40,14 @@ final class AppState {
     func loadApps() async {
         isLoadingApps = true
         allApps = await discoveryService.discoverApps()
+        recheckPermissions()
+        isLoadingApps = false
+    }
+
+    func recheckPermissions() {
         skippedDirectoryCount = ScanDirectory.userDirectories()
             .filter { !FileManager.default.isReadableFile(atPath: $0.url.path()) }
             .count
-        isLoadingApps = false
     }
 
     func scanApp(_ app: AppInfo) async {
