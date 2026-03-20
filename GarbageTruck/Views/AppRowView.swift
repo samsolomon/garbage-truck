@@ -3,7 +3,7 @@ import SwiftUI
 struct AppRowView: View {
     let app: AppInfo
 
-    @State private var sizeBytes: Int64?
+    @State private var deletableSizeBytes: Int64?
 
     var body: some View {
         HStack(spacing: 10) {
@@ -24,14 +24,13 @@ struct AppRowView: View {
 
             Spacer()
 
-            SizeLabel(sizeBytes: sizeBytes)
+            SizeLabel(sizeBytes: deletableSizeBytes)
                 .font(.callout)
         }
         .padding(.vertical, 2)
         .task(id: app.id) {
-            sizeBytes = await Task.detached {
-                FileScanner.computeSize(for: app.id)
-            }.value
+            let scanner = FileScanner()
+            deletableSizeBytes = await scanner.totalDeletableSize(for: app)
         }
     }
 }
