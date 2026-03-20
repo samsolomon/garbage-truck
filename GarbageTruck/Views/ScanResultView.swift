@@ -5,12 +5,8 @@ struct ScanResultView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
-    private var groupedFiles: [(FileCategory, [MatchedFile])] {
-        let grouped = Dictionary(grouping: scanResult.files, by: \.category)
-        return FileCategory.allCases.compactMap { category in
-            guard let files = grouped[category], !files.isEmpty else { return nil }
-            return (category, files)
-        }
+    private var allSelected: Bool {
+        appState.selectedFileIDs.count == scanResult.files.count
     }
 
     var body: some View {
@@ -30,16 +26,12 @@ struct ScanResultView: View {
                 )
             } else {
                 List {
-                    ForEach(groupedFiles, id: \.0) { category, files in
-                        Section(category.rawValue) {
-                            ForEach(files) { file in
-                                FileRowView(
-                                    file: file,
-                                    isSelected: appState.selectedFileIDs.contains(file.id),
-                                    onToggle: { toggleFile(file) }
-                                )
-                            }
-                        }
+                    ForEach(scanResult.files) { file in
+                        FileRowView(
+                            file: file,
+                            isSelected: appState.selectedFileIDs.contains(file.id),
+                            onToggle: { toggleFile(file) }
+                        )
                     }
                 }
                 .listStyle(.inset(alternatesRowBackgrounds: true))
@@ -140,22 +132,24 @@ struct ScanResultView: View {
             Spacer()
 
             HStack(spacing: 12) {
-                Button("Deselect All") {
-                    appState.selectedFileIDs.removeAll()
-                }
-                .buttonStyle(.bordered)
-                .disabled(appState.selectedFileIDs.isEmpty)
-
                 Button("Recommended Only") {
-                    let highIDs = scanResult.files
+                    let highIDs = Set(scanResult.files
                         .filter { $0.confidence == .high }
-                        .map(\.id)
-                    appState.selectedFileIDs = Set(highIDs)
+                        .map(\.id))
+                    if appState.selectedFileIDs == highIDs {
+                        appState.selectedFileIDs.removeAll()
+                    } else {
+                        appState.selectedFileIDs = highIDs
+                    }
                 }
                 .buttonStyle(.bordered)
 
-                Button("Select All") {
-                    appState.selectedFileIDs = Set(scanResult.files.map(\.id))
+                Button(allSelected ? "Deselect All" : "Select All") {
+                    if allSelected {
+                        appState.selectedFileIDs.removeAll()
+                    } else {
+                        appState.selectedFileIDs = Set(scanResult.files.map(\.id))
+                    }
                 }
                 .buttonStyle(.bordered)
 
