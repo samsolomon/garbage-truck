@@ -29,11 +29,6 @@ struct ScanResultView: View {
                     description: Text("No leftover files were found for \(scanResult.app.name).")
                 )
             } else {
-                footer
-                    .padding()
-
-                Divider()
-
                 List {
                     ForEach(groupedFiles, id: \.0) { category, files in
                         Section(category.rawValue) {
@@ -48,6 +43,11 @@ struct ScanResultView: View {
                     }
                 }
                 .listStyle(.inset(alternatesRowBackgrounds: true))
+
+                Divider()
+
+                footer
+                    .padding()
             }
 
             if !scanResult.skippedDirectories.isEmpty {
@@ -114,27 +114,18 @@ struct ScanResultView: View {
                     }
                 }
 
-                HStack(spacing: 8) {
-                    if let version = scanResult.app.version {
-                        Text("v\(version)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(scanResult.app.bundleIdentifier)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                Text("\(scanResult.files.count) files found")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            VStack(alignment: .trailing) {
-                Text("\(scanResult.files.count) files found")
-                    .font(.callout)
-                Text("Scanned in \(formatDuration(scanResult.scanDuration))")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            Text(formatSize(scanResult.totalSizeBytes))
+                .font(.title2)
+                .fontWeight(.semibold)
+                .monospacedDigit()
+                .foregroundStyle(.primary)
         }
     }
 
@@ -149,7 +140,13 @@ struct ScanResultView: View {
             Spacer()
 
             HStack(spacing: 12) {
-                Button("Select All High") {
+                Button("Deselect All") {
+                    appState.selectedFileIDs.removeAll()
+                }
+                .buttonStyle(.bordered)
+                .disabled(appState.selectedFileIDs.isEmpty)
+
+                Button("Recommended Only") {
                     let highIDs = scanResult.files
                         .filter { $0.confidence == .high }
                         .map(\.id)
@@ -207,16 +204,6 @@ struct ScanResultView: View {
             }
 
             appState.batchUpdateSizes(updates)
-        }
-    }
-
-    private func formatDuration(_ duration: Duration) -> String {
-        let ms = duration.components.attoseconds / 1_000_000_000_000_000
-        let totalMs = Int(duration.components.seconds) * 1000 + Int(ms)
-        if totalMs < 1000 {
-            return "\(totalMs)ms"
-        } else {
-            return String(format: "%.1fs", Double(totalMs) / 1000.0)
         }
     }
 

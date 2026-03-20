@@ -25,11 +25,11 @@ struct FileRowView: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
 
-                Text(file.id.deletingLastPathComponent().path())
+                Text(file.matchReason.description)
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
                     .lineLimit(1)
-                    .truncationMode(.head)
+                    .truncationMode(.middle)
             }
 
             Spacer()
@@ -41,5 +41,10 @@ struct FileRowView: View {
         }
         .contentShape(Rectangle())
         .onTapGesture { onToggle() }
+        .contextMenu {
+            Button("Reveal in Finder") {
+                NSWorkspace.shared.selectFile(file.id.path(), inFileViewerRootedAtPath: "")
+            }
+        }
     }
 }
