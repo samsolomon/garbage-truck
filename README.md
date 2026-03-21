@@ -10,7 +10,7 @@ When you drag an app to the Trash, macOS leaves behind caches, preferences, cont
 
 ## Install
 
-**Download** the latest release from the [Releases page](../../releases/latest), unzip, and drag GarbageTruck to your Applications folder.
+**[Download the latest release](../../releases/latest/download/GarbageTruck-mac.dmg)** — open the DMG and drag Garbage Truck to your Applications folder.
 
 Alternatively, build from source:
 

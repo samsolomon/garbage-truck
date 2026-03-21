@@ -93,17 +93,19 @@ jobs:
       - name: Staple
         run: xcrun stapler staple "build/export/$APP_NAME"
 
-      - name: Package release zip
+      - name: Package release DMG
         run: |
-          cd build/export
-          ditto -c -k --keepParent "$APP_NAME" "../../GarbageTruck-${{ steps.version.outputs.tag }}-mac.zip"
+          hdiutil create -volname "Garbage Truck" \
+            -srcfolder "build/export/$APP_NAME" \
+            -ov -format UDZO \
+            "GarbageTruck-mac.dmg"
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "${{ steps.version.outputs.tag }}" \
-            "GarbageTruck-${{ steps.version.outputs.tag }}-mac.zip" \
+            "GarbageTruck-mac.dmg" \
             --title "${{ steps.version.outputs.tag }}" \
             --generate-notes
 
