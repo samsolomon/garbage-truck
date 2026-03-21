@@ -1,15 +1,24 @@
 import Foundation
+import os
+
+private let logger = Logger(subsystem: "com.garbagetruck.app", category: "MatchingEngine")
 
 struct MatchingEngine: Sendable {
     private static let minimumNameLength = 4
 
     func findMatches(for app: AppInfo, in directory: ScanDirectory) -> [MatchedFile] {
         let fm = FileManager()
-        guard let contents = try? fm.contentsOfDirectory(
-            at: directory.url,
-            includingPropertiesForKeys: [.isDirectoryKey],
-            options: [.skipsHiddenFiles]
-        ) else { return [] }
+        let contents: [URL]
+        do {
+            contents = try fm.contentsOfDirectory(
+                at: directory.url,
+                includingPropertiesForKeys: [.isDirectoryKey],
+                options: [.skipsHiddenFiles]
+            )
+        } catch {
+            logger.warning("Could not read \(directory.url.path()): \(error.localizedDescription)")
+            return []
+        }
 
         var matches: [MatchedFile] = []
 

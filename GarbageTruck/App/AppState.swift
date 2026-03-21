@@ -67,7 +67,11 @@ final class AppState {
             }
         }
         if SMAppService.mainApp.status == .notRegistered {
-            try? SMAppService.mainApp.register()
+            do {
+                try SMAppService.mainApp.register()
+            } catch {
+                logger.error("Failed to register login item: \(error.localizedDescription)")
+            }
         }
         logger.notice("AppState initialized")
     }
@@ -222,6 +226,7 @@ final class AppState {
                 Task { await scanApp(app) }
             }
         } catch {
+            logger.error("Restore failed: \(error.localizedDescription)")
             deletionResultMessage = "Undo failed: \(error.localizedDescription)"
         }
     }
@@ -236,6 +241,21 @@ final class AppState {
         var ids = protectedAppBundleIDs
         ids.remove(bundleID)
         protectedAppBundleIDs = ids
+    }
+
+    var launchAtLogin: Bool {
+        get { SMAppService.mainApp.status == .enabled }
+        set {
+            do {
+                if newValue {
+                    try SMAppService.mainApp.register()
+                } else {
+                    try SMAppService.mainApp.unregister()
+                }
+            } catch {
+                logger.error("Failed to \(newValue ? "register" : "unregister") login item: \(error.localizedDescription)")
+            }
+        }
     }
 
     func checkForRemovedApps() async {

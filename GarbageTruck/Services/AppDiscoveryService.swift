@@ -1,4 +1,7 @@
 import Foundation
+import os
+
+private let logger = Logger(subsystem: "com.garbagetruck.app", category: "AppDiscovery")
 
 struct AppDiscoveryService: Sendable {
     static var applicationDirectories: [URL] {
@@ -16,11 +19,21 @@ struct AppDiscoveryService: Sendable {
 
         for searchPath in searchPaths {
             let fm = FileManager()
-            guard let contents = try? fm.contentsOfDirectory(
-                at: searchPath,
-                includingPropertiesForKeys: [.isDirectoryKey],
-                options: [.skipsHiddenFiles]
-            ) else { continue }
+            let contents: [URL]
+            do {
+                contents = try fm.contentsOfDirectory(
+                    at: searchPath,
+                    includingPropertiesForKeys: [.isDirectoryKey],
+                    options: [.skipsHiddenFiles]
+                )
+            } catch {
+                if searchPath == Self.applicationDirectories.last {
+                    logger.warning("Could not read \(searchPath.path()): \(error.localizedDescription)")
+                } else {
+                    logger.error("Could not read \(searchPath.path()): \(error.localizedDescription)")
+                }
+                continue
+            }
 
             for url in contents where url.pathExtension == "app" {
                 if let app = appInfo(from: url) {

@@ -1,4 +1,7 @@
 import Foundation
+import os
+
+private let logger = Logger(subsystem: "com.garbagetruck.app", category: "DeletionManager")
 
 struct DeletionRecord: Sendable {
     let date: Date
@@ -39,6 +42,7 @@ struct DeletionManager: Sendable {
                     entries.append((originalURL: url, trashURL: trashURL))
                 }
             } catch {
+                logger.error("Failed to trash \(url.path()): \(error.localizedDescription)")
                 errors.append((url, error.localizedDescription))
             }
         }

@@ -1,20 +1,10 @@
 import SwiftUI
-import ServiceManagement
 
 private let fdaSettingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!
 
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @State private var showAppPicker = false
-
-    private var launchAtLogin: Binding<Bool> {
-        Binding(
-            get: { SMAppService.mainApp.status == .enabled },
-            set: { newValue in
-                try? newValue ? SMAppService.mainApp.register() : SMAppService.mainApp.unregister()
-            }
-        )
-    }
 
     var body: some View {
         @Bindable var appState = appState
@@ -70,7 +60,7 @@ struct SettingsView: View {
                     Text("Open the cleanup view when leftover files are found.")
                 }
                 .disabled(!appState.isSmartDeleteEnabled)
-                Toggle(isOn: launchAtLogin) {
+                Toggle(isOn: $appState.launchAtLogin) {
                     Text("Launch at login")
                     Text("Start automatically when you log in.")
                 }
