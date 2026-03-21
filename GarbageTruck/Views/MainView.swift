@@ -204,10 +204,13 @@ struct MainView: View {
             guard let data = data as? Data,
                   let urlString = String(data: data, encoding: .utf8),
                   let url = URL(string: urlString),
+                  url.isFileURL,
                   url.pathExtension == "app"
             else { return }
+            let resolved = url.standardizedFileURL.resolvingSymlinksInPath()
+            guard resolved.pathExtension == "app" else { return }
             Task { @MainActor in
-                await appState.scanAppByURL(url)
+                await appState.scanAppByURL(resolved)
             }
         }
         return true
