@@ -19,13 +19,13 @@ struct SettingsView: View {
         let appsByBundleID = Dictionary(appState.allApps.map { ($0.bundleIdentifier, $0) }, uniquingKeysWith: { first, _ in first })
 
         Form {
-            Section("Smart Delete") {
-                Toggle("Enable Smart Delete", isOn: $appState.isSmartDeleteEnabled)
+            Section("Smart delete") {
+                Toggle("Enable smart delete", isOn: $appState.isSmartDeleteEnabled)
                 Toggle("Automatically show cleanup view", isOn: $appState.isAutoNavigateEnabled)
                     .disabled(!appState.isSmartDeleteEnabled)
             }
 
-            Section("Protected Apps") {
+            Section("Protected apps") {
                 if appState.protectedAppBundleIDs.isEmpty {
                     Text("No protected apps.")
                         .foregroundStyle(.secondary)
@@ -55,13 +55,13 @@ struct SettingsView: View {
                     }
                 }
 
-                Button("Add App...") {
+                Button("Add app...") {
                     showAppPicker = true
                 }
             }
 
             Section("General") {
-                Toggle("Launch at Login", isOn: launchAtLogin)
+                Toggle("Launch at login", isOn: launchAtLogin)
             }
         }
         .formStyle(.grouped)
@@ -91,7 +91,7 @@ private struct ProtectedAppPicker: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("Add Protected App")
+            Text("Add protected app")
                 .font(.headline)
                 .padding()
 

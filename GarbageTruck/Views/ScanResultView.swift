@@ -16,7 +16,7 @@ struct ScanResultView: View {
         Group {
             if scanResult.files.isEmpty {
                 ContentUnavailableView(
-                    "No Files Found",
+                    "No files found",
                     systemImage: "checkmark.circle",
                     description: Text("No leftover files were found for \(scanResult.app.name).")
                 )
@@ -59,16 +59,16 @@ struct ScanResultView: View {
                 .keyboardShortcut(.escape, modifiers: [])
                 .hidden()
         }
-        .alert("Force Quit?", isPresented: $showForceQuitAlert) {
-            Button("Force Quit", role: .destructive) {
+        .alert("Force quit?", isPresented: $showForceQuitAlert) {
+            Button("Force quit", role: .destructive) {
                 appState.forceTerminateApp(scanResult.app)
             }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("\(scanResult.app.name) didn't respond to the quit request. Force quit?")
         }
-        .alert("Confirm Deletion", isPresented: $appState.showDeleteConfirmation) {
-            Button("Move to Trash", role: .destructive) {
+        .alert("Confirm deletion", isPresented: $appState.showDeleteConfirmation) {
+            Button("Move to trash", role: .destructive) {
                 appState.deleteSelectedFiles()
             }
             Button("Cancel", role: .cancel) {}
@@ -154,7 +154,7 @@ struct ScanResultView: View {
             Spacer()
 
             HStack(spacing: 12) {
-                Button("Recommended Only") {
+                Button("Recommended only") {
                     let highIDs = Set(scanResult.files
                         .filter { $0.confidence == .high }
                         .map(\.id))
@@ -166,7 +166,7 @@ struct ScanResultView: View {
                 }
                 .buttonStyle(.bordered)
 
-                Button(allSelected ? "Deselect All" : "Select All") {
+                Button(allSelected ? "Deselect all" : "Select all") {
                     if allSelected {
                         appState.selectedFileIDs.removeAll()
                     } else {
@@ -175,7 +175,7 @@ struct ScanResultView: View {
                 }
                 .buttonStyle(.bordered)
 
-                Button("Move to Trash") {
+                Button("Move to trash") {
                     appState.showDeleteConfirmation = true
                 }
                 .buttonStyle(.borderedProminent)

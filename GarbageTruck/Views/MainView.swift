@@ -223,7 +223,7 @@ private struct FDAOnboardingSheet: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
 
-            Text("Full Disk Access Required")
+            Text("Full disk access required")
                 .font(.title2)
                 .fontWeight(.semibold)
 
@@ -233,7 +233,7 @@ private struct FDAOnboardingSheet: View {
                 .multilineTextAlignment(.center)
 
             VStack(spacing: 10) {
-                Button("Open System Settings") {
+                Button("Open system settings") {
                     NSWorkspace.shared.open(fdaSettingsURL)
                     isPresented = false
                 }
