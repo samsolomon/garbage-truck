@@ -19,10 +19,19 @@ struct SettingsView: View {
         let appsByBundleID = Dictionary(appState.allApps.map { ($0.bundleIdentifier, $0) }, uniquingKeysWith: { first, _ in first })
 
         Form {
+            Section("Appearance") {
+                Toggle("Show in Dock", isOn: $appState.showInDock)
+                    .onChange(of: appState.showInDock) { _, newValue in
+                        NSApp.setActivationPolicy(newValue ? .regular : .accessory)
+                    }
+                Toggle("Show in menu bar", isOn: $appState.showInMenuBar)
+            }
+
             Section("Smart delete") {
                 Toggle("Enable smart delete", isOn: $appState.isSmartDeleteEnabled)
                 Toggle("Automatically show cleanup view", isOn: $appState.isAutoNavigateEnabled)
                     .disabled(!appState.isSmartDeleteEnabled)
+                Toggle("Launch at login", isOn: launchAtLogin)
             }
 
             Section("Protected apps") {
@@ -58,15 +67,6 @@ struct SettingsView: View {
                 Button("Add app...") {
                     showAppPicker = true
                 }
-            }
-
-            Section("General") {
-                Toggle("Show in Dock", isOn: $appState.showInDock)
-                    .onChange(of: appState.showInDock) { _, newValue in
-                        NSApp.setActivationPolicy(newValue ? .regular : .accessory)
-                    }
-                Toggle("Show in menu bar", isOn: $appState.showInMenuBar)
-                Toggle("Launch at login", isOn: launchAtLogin)
             }
         }
         .formStyle(.grouped)
