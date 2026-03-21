@@ -29,13 +29,11 @@ final class AppState {
         get { Set(UserDefaults.standard.stringArray(forKey: Self.protectedAppsKey) ?? []) }
         set { UserDefaults.standard.set(Array(newValue), forKey: Self.protectedAppsKey) }
     }
-    var showInDock: Bool {
-        get { UserDefaults.standard.bool(forKey: Self.showInDockKey) }
-        set { UserDefaults.standard.set(newValue, forKey: Self.showInDockKey) }
+    var showInDock: Bool = true {
+        didSet { UserDefaults.standard.set(showInDock, forKey: Self.showInDockKey) }
     }
-    var showInMenuBar: Bool {
-        get { UserDefaults.standard.bool(forKey: Self.showInMenuBarKey) }
-        set { UserDefaults.standard.set(newValue, forKey: Self.showInMenuBarKey) }
+    var showInMenuBar: Bool = true {
+        didSet { UserDefaults.standard.set(showInMenuBar, forKey: Self.showInMenuBarKey) }
     }
 
     private var previousAppIDs: Set<URL> = []
@@ -61,8 +59,12 @@ final class AppState {
             Self.showInDockKey: true,
             Self.showInMenuBarKey: true,
         ])
+        showInDock = UserDefaults.standard.bool(forKey: Self.showInDockKey)
+        showInMenuBar = UserDefaults.standard.bool(forKey: Self.showInMenuBarKey)
         if !showInDock {
-            NSApp.setActivationPolicy(.accessory)
+            DispatchQueue.main.async {
+                NSApp.setActivationPolicy(.accessory)
+            }
         }
         if SMAppService.mainApp.status == .notRegistered {
             try? SMAppService.mainApp.register()
