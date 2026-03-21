@@ -80,7 +80,7 @@ struct FileScanner: Sendable {
             if let enumerator = fm.enumerator(
                 at: url,
                 includingPropertiesForKeys: [.totalFileAllocatedSizeKey],
-                options: [.skipsHiddenFiles]
+                options: [.skipsHiddenFiles, .producesRelativePathURLs]
             ) {
                 for case let fileURL as URL in enumerator {
                     if let fileValues = try? fileURL.resourceValues(forKeys: [.totalFileAllocatedSizeKey]),
