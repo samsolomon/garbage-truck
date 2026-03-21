@@ -3,7 +3,8 @@ import Foundation
 enum PathSafety {
     static let deniedPrefixes = [
         "/System/", "/usr/bin/", "/usr/sbin/", "/bin/", "/sbin/",
-        "/Library/Apple/", "/private/var/protected/",
+        "/Library/Apple/", "/Library/LaunchDaemons/", "/Library/LaunchAgents/",
+        "/private/var/protected/", "/private/var/db/",
     ]
 
     static func isDenied(_ url: URL) -> Bool {
