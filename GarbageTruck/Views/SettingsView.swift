@@ -20,21 +20,36 @@ struct SettingsView: View {
 
         Form {
             Section("Appearance") {
-                Toggle("Show in Dock", isOn: $appState.showInDock)
-                    .onChange(of: appState.showInDock) { _, newValue in
-                        NSApp.setActivationPolicy(newValue ? .regular : .accessory)
-                    }
-                Toggle("Show in menu bar", isOn: $appState.showInMenuBar)
+                Toggle(isOn: $appState.showInDock) {
+                    Text("Show in Dock")
+                    Text("Display the app icon in the Dock.")
+                }
+                .onChange(of: appState.showInDock) { _, newValue in
+                    NSApp.setActivationPolicy(newValue ? .regular : .accessory)
+                }
+                Toggle(isOn: $appState.showInMenuBar) {
+                    Text("Show in menu bar")
+                    Text("Add a menu bar icon for quick access.")
+                }
             }
 
             Section("Smart delete") {
-                Toggle("Enable smart delete", isOn: $appState.isSmartDeleteEnabled)
-                Toggle("Automatically show cleanup view", isOn: $appState.isAutoNavigateEnabled)
-                    .disabled(!appState.isSmartDeleteEnabled)
-                Toggle("Launch at login", isOn: launchAtLogin)
+                Toggle(isOn: $appState.isSmartDeleteEnabled) {
+                    Text("Enable smart delete")
+                    Text("Detect when apps are removed and find leftover files.")
+                }
+                Toggle(isOn: $appState.isAutoNavigateEnabled) {
+                    Text("Automatically show cleanup view")
+                    Text("Open the cleanup view when leftover files are found.")
+                }
+                .disabled(!appState.isSmartDeleteEnabled)
+                Toggle(isOn: launchAtLogin) {
+                    Text("Launch at login")
+                    Text("Start automatically when you log in.")
+                }
             }
 
-            Section("Protected apps") {
+            Section {
                 if appState.protectedAppBundleIDs.isEmpty {
                     Text("No protected apps.")
                         .foregroundStyle(.secondary)
@@ -67,6 +82,10 @@ struct SettingsView: View {
                 Button("Add app...") {
                     showAppPicker = true
                 }
+            } header: {
+                Text("Protected apps")
+            } footer: {
+                Text("Smart delete will skip these apps and leave their files untouched.")
             }
         }
         .formStyle(.grouped)
