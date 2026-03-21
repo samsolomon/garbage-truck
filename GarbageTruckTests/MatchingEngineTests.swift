@@ -186,6 +186,33 @@ struct MatchingEngineTests {
         #expect(matches[0].id.lastPathComponent == "com.test.testapp.plist")
     }
 
+    @Test func selfExclusion_appBundleNeverMatchedByName() throws {
+        // The .app bundle itself should be excluded even when its name matches
+        let tmpDir = try TestFixtures.makeTempDirectory(prefix: "selfExclusionNameTest")
+        let appURL = tmpDir.appending(path: "Slack.app")
+        try FileManager.default.createDirectory(at: appURL, withIntermediateDirectories: true)
+        // Create another matching file to confirm exclusion is targeted
+        FileManager.default.createFile(
+            atPath: tmpDir.appending(path: "com.tinyspeck.slackmacgap.plist").path(),
+            contents: nil
+        )
+        defer { try? FileManager.default.removeItem(at: tmpDir) }
+
+        let app = AppInfo(
+            url: appURL,
+            bundleIdentifier: "com.tinyspeck.slackmacgap",
+            name: "Slack",
+            version: nil,
+            isSystemApp: false
+        )
+        let dir = ScanDirectory(url: tmpDir, category: .applicationSupport)
+        let matches = engine.findMatches(for: app, in: dir)
+
+        let matchedNames = matches.map { $0.id.lastPathComponent }
+        #expect(!matchedNames.contains("Slack.app"), "The app's own .app bundle should be excluded")
+        #expect(matchedNames.contains("com.tinyspeck.slackmacgap.plist"))
+    }
+
     @Test func deniedPathFilteredInFindMatches() {
         // matchItem itself doesn't filter paths — findMatches does via PathSafety.
         // Verify matchItem would match if called directly with a system path.

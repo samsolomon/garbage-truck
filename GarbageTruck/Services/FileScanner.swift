@@ -42,13 +42,7 @@ struct FileScanner: Sendable {
         }
 
         // Sort: high confidence first, then by category, then by name
-        allFiles.sort { a, b in
-            if a.confidence != b.confidence { return a.confidence > b.confidence }
-            if a.category.sortOrder != b.category.sortOrder {
-                return a.category.sortOrder < b.category.sortOrder
-            }
-            return a.id.lastPathComponent.localizedCaseInsensitiveCompare(b.id.lastPathComponent) == .orderedAscending
-        }
+        allFiles.sort(by: Self.displayOrder)
 
         let duration = clock.now - start
 
@@ -57,6 +51,14 @@ struct FileScanner: Sendable {
             files: allFiles,
             scanDuration: duration
         )
+    }
+
+    static let displayOrder: @Sendable (MatchedFile, MatchedFile) -> Bool = { a, b in
+        if a.confidence != b.confidence { return a.confidence > b.confidence }
+        if a.category.sortOrder != b.category.sortOrder {
+            return a.category.sortOrder < b.category.sortOrder
+        }
+        return a.id.lastPathComponent.localizedCaseInsensitiveCompare(b.id.lastPathComponent) == .orderedAscending
     }
 
     func totalDeletableSize(for app: AppInfo) async -> Int64 {

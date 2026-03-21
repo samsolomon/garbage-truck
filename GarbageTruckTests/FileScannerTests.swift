@@ -38,4 +38,88 @@ struct FileScannerTests {
         let size = FileScanner.computeSize(for: url)
         #expect(size == 0)
     }
+
+    // MARK: - Scan result sorting
+
+    @Test func scanResultsSortedByConfidenceThenCategoryThenName() throws {
+        let tmpDir = try TestFixtures.makeTempDirectory(prefix: "sortTest")
+        defer { try? FileManager.default.removeItem(at: tmpDir) }
+
+        let cacheDir = tmpDir.appending(path: "Caches")
+        let prefDir = tmpDir.appending(path: "Preferences")
+        let supportDir = tmpDir.appending(path: "Application Support")
+        for dir in [cacheDir, prefDir, supportDir] {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        }
+
+        // High confidence (bundle ID match) in caches
+        FileManager.default.createFile(
+            atPath: cacheDir.appending(path: "com.example.tbx.cache").path(percentEncoded: false), contents: nil)
+        // High confidence (bundle ID match) in application support
+        FileManager.default.createFile(
+            atPath: supportDir.appending(path: "com.example.tbx").path(percentEncoded: false), contents: nil)
+        // Medium confidence (name match only) in preferences
+        // "Toolbox" doesn't appear in the bundle ID, so it matches via tier 4 (app name)
+        FileManager.default.createFile(
+            atPath: prefDir.appending(path: "Toolbox Helper.plist").path(percentEncoded: false), contents: nil)
+
+        // Bundle ID last component "tbx" is < 4 chars, so tier 3 is skipped.
+        // "Toolbox Helper.plist" will only match via tier 4 (app name, medium confidence).
+        let app = TestFixtures.makeApp(name: "Toolbox", bundleID: "com.example.tbx")
+        let engine = MatchingEngine()
+        var allFiles: [MatchedFile] = []
+        let dirs = [
+            ScanDirectory(url: supportDir, category: .applicationSupport),
+            ScanDirectory(url: prefDir, category: .preferences),
+            ScanDirectory(url: cacheDir, category: .caches),
+        ]
+        for dir in dirs {
+            allFiles.append(contentsOf: engine.findMatches(for: app, in: dir))
+        }
+
+        // Use the same sort comparator as FileScanner
+        allFiles.sort(by: FileScanner.displayOrder)
+
+        try #require(allFiles.count == 3)
+
+        // All high confidence files should appear before any medium
+        let highFiles = allFiles.filter { $0.confidence == .high }
+        let medFiles = allFiles.filter { $0.confidence == .medium }
+        try #require(highFiles.count == 2)
+        try #require(medFiles.count == 1)
+
+        let lastHighIndex = try #require(allFiles.lastIndex(where: { $0.confidence == .high }))
+        let firstMedIndex = try #require(allFiles.firstIndex(where: { $0.confidence == .medium }))
+        #expect(lastHighIndex < firstMedIndex)
+
+        // Within high confidence, applicationSupport (sortOrder 1) before caches (sortOrder 3)
+        #expect(allFiles[0].category == .applicationSupport)
+        #expect(allFiles[1].category == .caches)
+        #expect(allFiles[2].confidence == .medium)
+    }
+
+    // MARK: - Deduplication across directories
+
+    @Test func deduplication_sameFileScanTwice() throws {
+        let tmpDir = try TestFixtures.makeTempDirectory(prefix: "dedupTest")
+        defer { try? FileManager.default.removeItem(at: tmpDir) }
+
+        FileManager.default.createFile(
+            atPath: tmpDir.appending(path: "com.test.myapp.plist").path(), contents: nil)
+
+        let app = TestFixtures.makeApp(name: "MyApp", bundleID: "com.test.myapp")
+        let engine = MatchingEngine()
+        let dir = ScanDirectory(url: tmpDir, category: .preferences)
+        let matches1 = engine.findMatches(for: app, in: dir)
+        let matches2 = engine.findMatches(for: app, in: dir)
+
+        // Combine and deduplicate like FileScanner does
+        var allFiles = matches1 + matches2
+        var seen = Set<URL>()
+        allFiles = allFiles.filter { seen.insert($0.id).inserted }
+
+        #expect(matches1.count == 1)
+        #expect(matches2.count == 1)
+        #expect(allFiles.count == 1, "Duplicate file should be deduplicated to a single entry")
+    }
 }
