@@ -172,6 +172,11 @@ final class AppState {
         } else {
             deletionResultMessage = "Moved \(result.movedCount) files to Trash."
         }
+
+        // Return to list if no files remain
+        if scan.files.isEmpty {
+            navigationPath = []
+        }
     }
 
     func undoLastDeletion() {
