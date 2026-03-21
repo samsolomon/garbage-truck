@@ -16,7 +16,6 @@ final class AppState {
     var showDeleteConfirmation = false
     var deletionResultMessage: String? = nil
     var skippedDirectoryCount = 0
-    var smartDeleteApp: AppInfo? = nil
     var isSmartDeleteEnabled: Bool {
         get { UserDefaults.standard.bool(forKey: Self.smartDeleteKey) }
         set { UserDefaults.standard.set(newValue, forKey: Self.smartDeleteKey) }
@@ -36,7 +35,7 @@ final class AppState {
 
     init() {
         UserDefaults.standard.register(defaults: [Self.smartDeleteKey: true])
-        NSLog("[SmartDelete] AppState initialized")
+        logger.notice("AppState initialized")
     }
 
     var filteredApps: [AppInfo] {
@@ -56,7 +55,7 @@ final class AppState {
     }
 
     func loadApps() async {
-        NSLog("[SmartDelete] loadApps called")
+        logger.notice("loadApps called")
         isLoadingApps = true
         previousAppIDs = Set(allApps.map(\.id))
         allApps = await discoveryService.discoverApps()
@@ -72,9 +71,11 @@ final class AppState {
         guard directoryMonitor == nil else { return }
         directoryMonitor = DirectoryMonitor(directories: AppDiscoveryService.applicationDirectories) { [weak self] in
             Task { @MainActor in
+                let pathBefore = self?.navigationPath ?? []
                 await self?.checkForRemovedApps()
-                if self?.smartDeleteApp != nil {
-                    NSApp.activate()
+                if let self, self.navigationPath != pathBefore {
+                    NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                    NSApp.mainWindow?.orderFrontRegardless()
                 }
             }
         }
@@ -188,17 +189,17 @@ final class AppState {
 
     func checkForRemovedApps() async {
         guard isSmartDeleteEnabled else {
-            NSLog("[SmartDelete] disabled, skipping")
+            logger.notice("disabled, skipping")
             return
         }
         guard !previousAppIDs.isEmpty else {
-            NSLog("[SmartDelete] no baseline yet, skipping")
+            logger.notice("no baseline yet, skipping")
             return
         }
 
         // Throttle: skip if checked recently
         if let last = lastRemovalCheckDate, Date.now.timeIntervalSince(last) < Self.removalCheckInterval {
-            NSLog("[SmartDelete] throttled, skipping")
+            logger.notice("throttled, skipping")
             return
         }
         lastRemovalCheckDate = .now
@@ -209,7 +210,7 @@ final class AppState {
         let removedIDs = previousAppIDs.subtracting(freshIDs)
 
         let baselineCount = previousAppIDs.count
-        NSLog("[SmartDelete] baseline: %d, fresh: %d, removed: %d", baselineCount, freshIDs.count, removedIDs.count)
+        logger.notice("baseline: \(baselineCount), fresh: \(freshIDs.count), removed: \(removedIDs.count)")
 
         if freshApps != allApps {
             allApps = freshApps
@@ -221,35 +222,30 @@ final class AppState {
 
         for id in removedIDs {
             guard let app = oldApps.first(where: { $0.id == id }) else {
-                NSLog("[SmartDelete] %@: not in old app list, skipping", id.lastPathComponent)
+                logger.notice("\(id.lastPathComponent): not in old app list, skipping")
                 continue
             }
             if app.isSystemApp {
-                NSLog("[SmartDelete] %@: system app, skipping", app.name)
+                logger.notice("\(app.name): system app, skipping")
                 continue
             }
             if app.id == selfBundleURL {
-                NSLog("[SmartDelete] %@: is self, skipping", app.name)
+                logger.notice("\(app.name): is self, skipping")
                 continue
             }
             if runningAppDetector.isRunning(bundleIdentifier: app.bundleIdentifier) {
-                NSLog("[SmartDelete] %@: still running, skipping", app.name)
+                logger.notice("\(app.name): still running, skipping")
                 continue
             }
             if fm.fileExists(atPath: app.id.path()) {
-                NSLog("[SmartDelete] %@: .app still exists at %@, skipping", app.name, app.id.path())
+                logger.notice("\(app.name): .app still exists at \(app.id.path()), skipping")
                 continue
             }
 
-            NSLog("[SmartDelete] detected removal: %@", app.name)
-            smartDeleteApp = app
+            logger.notice("detected removal: \(app.name)")
+            navigationPath = [app]
             return
         }
     }
 
-    func handleSmartDelete() {
-        guard let app = smartDeleteApp else { return }
-        smartDeleteApp = nil
-        navigationPath = [app]
-    }
 }

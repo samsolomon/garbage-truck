@@ -30,7 +30,7 @@ struct FileScanner: Sendable {
         var seen = Set<URL>()
         allFiles = allFiles.filter { seen.insert($0.id).inserted }
 
-        // Add the .app bundle itself as the primary item (skip if trashed/missing)
+        // Add the .app bundle itself as the primary item (skip if already trashed)
         if FileManager.default.fileExists(atPath: app.id.path()) {
             allFiles.append(MatchedFile(
                 id: app.id,

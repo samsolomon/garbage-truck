@@ -58,17 +58,6 @@ struct MainView: View {
                 Text(message)
             }
         }
-        .alert("App Removed", isPresented: .init(
-            get: { appState.smartDeleteApp != nil },
-            set: { if !$0 { appState.smartDeleteApp = nil } }
-        )) {
-            Button("Clean Up") { appState.handleSmartDelete() }
-            Button("Ignore", role: .cancel) { appState.smartDeleteApp = nil }
-        } message: {
-            if let app = appState.smartDeleteApp {
-                Text("\(app.name) was moved to Trash. Would you like to remove its leftover files?")
-            }
-        }
     }
 
     private var listContent: some View {

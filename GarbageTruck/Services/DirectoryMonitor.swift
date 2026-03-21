@@ -18,10 +18,10 @@ final class DirectoryMonitor: Sendable {
 
     func start() {
         guard stream == nil else {
-            NSLog("[DirectoryMonitor] already started")
+            logger.notice("already started")
             return
         }
-        NSLog("[DirectoryMonitor] starting for paths: \(self.paths)")
+        logger.notice("starting for paths: \(self.paths)")
 
         let box = Unmanaged.passRetained(CallbackBox(handler))
         let context = UnsafeMutableRawPointer(box.toOpaque())
@@ -73,7 +73,7 @@ final class DirectoryMonitor: Sendable {
         _, clientCallBackInfo, _, _, _, _ in
         guard let info = clientCallBackInfo else { return }
         let box = Unmanaged<CallbackBox>.fromOpaque(info).takeUnretainedValue()
-        NSLog("[DirectoryMonitor] FSEvent fired")
+        logger.notice("FSEvent fired")
         box.handler()
     }
 }

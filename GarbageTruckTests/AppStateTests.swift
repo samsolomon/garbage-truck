@@ -132,16 +132,4 @@ struct AppStateTests {
         try? FileManager.default.removeItem(at: tmpDir)
     }
 
-    // MARK: - handleSmartDelete (7d)
-
-    @Test func handleSmartDelete_setsNavAndClears() {
-        let state = AppState()
-        let app = TestFixtures.makeApp(name: "RemovedApp", bundleID: "com.removed.app")
-        state.smartDeleteApp = app
-
-        state.handleSmartDelete()
-
-        #expect(state.smartDeleteApp == nil)
-        #expect(state.navigationPath == [app])
-    }
 }

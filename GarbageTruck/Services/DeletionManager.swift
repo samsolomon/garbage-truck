@@ -32,6 +32,8 @@ struct DeletionManager: Sendable {
                 continue
             }
 
+            guard fm.fileExists(atPath: url.path()) else { continue }
+
             do {
                 var trashURL: NSURL?
                 try fm.trashItem(at: url, resultingItemURL: &trashURL)

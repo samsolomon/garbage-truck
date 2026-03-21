@@ -50,7 +50,7 @@ struct DeletionManagerTests {
         let result = manager.moveToTrash(files: [file, nonexistent], appName: "MixedApp")
 
         #expect(result.movedCount == 1)
-        #expect(result.failedCount == 1)
+        #expect(result.failedCount == 0)
         #expect(result.record != nil)
         #expect(result.record?.entries.count == 1)
 
