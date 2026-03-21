@@ -27,5 +27,20 @@ struct GarbageTruckApp: App {
             SettingsView()
                 .environment(appState)
         }
+
+        MenuBarExtra("Garbage Truck", systemImage: "trash", isInserted: Bindable(appState).showInMenuBar) {
+            Button("Open Garbage Truck") {
+                NSApp.activate(ignoringOtherApps: true)
+                NSApp.mainWindow?.orderFrontRegardless()
+            }
+            Divider()
+            SettingsLink {
+                Text("Settings...")
+            }
+            Divider()
+            Button("Quit Garbage Truck") {
+                NSApp.terminate(nil)
+            }
+        }
     }
 }

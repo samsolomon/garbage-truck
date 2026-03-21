@@ -1,4 +1,5 @@
 import os
+import ServiceManagement
 import SwiftUI
 
 private let logger = Logger(subsystem: "com.garbagetruck.app", category: "SmartDelete")
@@ -28,6 +29,14 @@ final class AppState {
         get { Set(UserDefaults.standard.stringArray(forKey: Self.protectedAppsKey) ?? []) }
         set { UserDefaults.standard.set(Array(newValue), forKey: Self.protectedAppsKey) }
     }
+    var showInDock: Bool {
+        get { UserDefaults.standard.bool(forKey: Self.showInDockKey) }
+        set { UserDefaults.standard.set(newValue, forKey: Self.showInDockKey) }
+    }
+    var showInMenuBar: Bool {
+        get { UserDefaults.standard.bool(forKey: Self.showInMenuBarKey) }
+        set { UserDefaults.standard.set(newValue, forKey: Self.showInMenuBarKey) }
+    }
 
     private var previousAppIDs: Set<URL> = []
     private var lastRemovalCheckDate: Date?
@@ -41,13 +50,23 @@ final class AppState {
     private static let smartDeleteKey = "smartDeleteEnabled"
     private static let autoNavigateKey = "autoNavigateOnSmartDelete"
     private static let protectedAppsKey = "protectedAppBundleIDs"
+    private static let showInDockKey = "showInDock"
+    private static let showInMenuBarKey = "showInMenuBar"
     private static let removalCheckInterval: TimeInterval = 5
 
     init() {
         UserDefaults.standard.register(defaults: [
             Self.smartDeleteKey: true,
             Self.autoNavigateKey: true,
+            Self.showInDockKey: true,
+            Self.showInMenuBarKey: true,
         ])
+        if !showInDock {
+            NSApp.setActivationPolicy(.accessory)
+        }
+        if SMAppService.mainApp.status == .notRegistered {
+            try? SMAppService.mainApp.register()
+        }
         logger.notice("AppState initialized")
     }
 

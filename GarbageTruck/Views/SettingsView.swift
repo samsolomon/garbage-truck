@@ -61,6 +61,11 @@ struct SettingsView: View {
             }
 
             Section("General") {
+                Toggle("Show in Dock", isOn: $appState.showInDock)
+                    .onChange(of: appState.showInDock) { _, newValue in
+                        NSApp.setActivationPolicy(newValue ? .regular : .accessory)
+                    }
+                Toggle("Show in menu bar", isOn: $appState.showInMenuBar)
                 Toggle("Launch at login", isOn: launchAtLogin)
             }
         }
