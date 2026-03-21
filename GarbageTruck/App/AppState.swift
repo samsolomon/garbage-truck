@@ -274,27 +274,27 @@ final class AppState {
 
         for id in removedIDs {
             guard let app = oldApps.first(where: { $0.id == id }) else {
-                logger.notice("\(id.lastPathComponent): not in old app list, skipping")
+                logger.debug("\(id.lastPathComponent): not in old app list, skipping")
                 continue
             }
             if app.isSystemApp {
-                logger.notice("\(app.name): system app, skipping")
+                logger.debug("\(app.name): system app, skipping")
                 continue
             }
             if protectedIDs.contains(app.bundleIdentifier) {
-                logger.notice("\(app.name): protected app, skipping")
+                logger.debug("\(app.name): protected app, skipping")
                 continue
             }
             if app.id == selfBundleURL {
-                logger.notice("\(app.name): is self, skipping")
+                logger.debug("\(app.name): is self, skipping")
                 continue
             }
             if runningAppDetector.isRunning(bundleIdentifier: app.bundleIdentifier) {
-                logger.notice("\(app.name): still running, skipping")
+                logger.debug("\(app.name): still running, skipping")
                 continue
             }
             if fm.fileExists(atPath: app.id.path()) {
-                logger.notice("\(app.name): .app still exists at \(app.id.path()), skipping")
+                logger.debug("\(app.name): .app still exists, skipping")
                 continue
             }
 
