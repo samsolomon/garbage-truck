@@ -20,6 +20,14 @@ final class AppState {
         get { UserDefaults.standard.bool(forKey: Self.smartDeleteKey) }
         set { UserDefaults.standard.set(newValue, forKey: Self.smartDeleteKey) }
     }
+    var isAutoNavigateEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: Self.autoNavigateKey) }
+        set { UserDefaults.standard.set(newValue, forKey: Self.autoNavigateKey) }
+    }
+    var protectedAppBundleIDs: Set<String> {
+        get { Set(UserDefaults.standard.stringArray(forKey: Self.protectedAppsKey) ?? []) }
+        set { UserDefaults.standard.set(Array(newValue), forKey: Self.protectedAppsKey) }
+    }
 
     private var previousAppIDs: Set<URL> = []
     private var lastRemovalCheckDate: Date?
@@ -31,10 +39,15 @@ final class AppState {
 
     private static let maxUndoHistory = 10
     private static let smartDeleteKey = "smartDeleteEnabled"
+    private static let autoNavigateKey = "autoNavigateOnSmartDelete"
+    private static let protectedAppsKey = "protectedAppBundleIDs"
     private static let removalCheckInterval: TimeInterval = 5
 
     init() {
-        UserDefaults.standard.register(defaults: [Self.smartDeleteKey: true])
+        UserDefaults.standard.register(defaults: [
+            Self.smartDeleteKey: true,
+            Self.autoNavigateKey: true,
+        ])
         logger.notice("AppState initialized")
     }
 
@@ -73,7 +86,7 @@ final class AppState {
             Task { @MainActor in
                 let pathBefore = self?.navigationPath ?? []
                 await self?.checkForRemovedApps()
-                if let self, self.navigationPath != pathBefore {
+                if let self, self.isAutoNavigateEnabled, self.navigationPath != pathBefore {
                     NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
                     NSApp.mainWindow?.orderFrontRegardless()
                 }
@@ -192,6 +205,18 @@ final class AppState {
         }
     }
 
+    func addProtectedApp(_ bundleID: String) {
+        var ids = protectedAppBundleIDs
+        ids.insert(bundleID)
+        protectedAppBundleIDs = ids
+    }
+
+    func removeProtectedApp(_ bundleID: String) {
+        var ids = protectedAppBundleIDs
+        ids.remove(bundleID)
+        protectedAppBundleIDs = ids
+    }
+
     func checkForRemovedApps() async {
         guard isSmartDeleteEnabled else {
             logger.notice("disabled, skipping")
@@ -224,6 +249,7 @@ final class AppState {
 
         let selfBundleURL = Bundle.main.bundleURL
         let fm = FileManager.default
+        let protectedIDs = protectedAppBundleIDs
 
         for id in removedIDs {
             guard let app = oldApps.first(where: { $0.id == id }) else {
@@ -232,6 +258,10 @@ final class AppState {
             }
             if app.isSystemApp {
                 logger.notice("\(app.name): system app, skipping")
+                continue
+            }
+            if protectedIDs.contains(app.bundleIdentifier) {
+                logger.notice("\(app.name): protected app, skipping")
                 continue
             }
             if app.id == selfBundleURL {
@@ -248,7 +278,9 @@ final class AppState {
             }
 
             logger.notice("detected removal: \(app.name)")
-            navigationPath = [app]
+            if isAutoNavigateEnabled {
+                navigationPath = [app]
+            }
             return
         }
     }
