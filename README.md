@@ -1,8 +1,26 @@
+<p align="center">
+  <img src="GarbageTruck/Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" width="128" height="128" alt="Garbage Truck icon">
+</p>
+
 # Garbage Truck
 
 A macOS app that finds and removes leftover files when you delete applications.
 
 When you drag an app to the Trash, macOS leaves behind caches, preferences, containers, logs, and other support files scattered across `~/Library`. Garbage Truck finds them so you can clean up.
+
+## Install
+
+**Download** the latest release from the [Releases page](../../releases/latest), unzip, and drag GarbageTruck to your Applications folder.
+
+Alternatively, build from source:
+
+```bash
+git clone https://github.com/samsolomon/garbage-truck.git
+cd garbage-truck
+xcodebuild -scheme GarbageTruck -destination 'platform=macOS' build
+```
+
+The built app will be in `build/Release/GarbageTruck.app`.
 
 ## Features
 
