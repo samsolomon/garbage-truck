@@ -1,4 +1,7 @@
+import os
 import SwiftUI
+
+private let logger = Logger(subsystem: "com.garbagetruck.app", category: "SmartDelete")
 
 @Observable @MainActor
 final class AppState {
@@ -33,6 +36,7 @@ final class AppState {
 
     init() {
         UserDefaults.standard.register(defaults: [Self.smartDeleteKey: true])
+        NSLog("[SmartDelete] AppState initialized")
     }
 
     var filteredApps: [AppInfo] {
@@ -52,6 +56,7 @@ final class AppState {
     }
 
     func loadApps() async {
+        NSLog("[SmartDelete] loadApps called")
         isLoadingApps = true
         previousAppIDs = Set(allApps.map(\.id))
         allApps = await discoveryService.discoverApps()
@@ -182,10 +187,18 @@ final class AppState {
     }
 
     func checkForRemovedApps() async {
-        guard isSmartDeleteEnabled, !previousAppIDs.isEmpty else { return }
+        guard isSmartDeleteEnabled else {
+            NSLog("[SmartDelete] disabled, skipping")
+            return
+        }
+        guard !previousAppIDs.isEmpty else {
+            NSLog("[SmartDelete] no baseline yet, skipping")
+            return
+        }
 
         // Throttle: skip if checked recently
         if let last = lastRemovalCheckDate, Date.now.timeIntervalSince(last) < Self.removalCheckInterval {
+            NSLog("[SmartDelete] throttled, skipping")
             return
         }
         lastRemovalCheckDate = .now
@@ -194,6 +207,9 @@ final class AppState {
         let freshApps = await discoveryService.discoverApps()
         let freshIDs = Set(freshApps.map(\.id))
         let removedIDs = previousAppIDs.subtracting(freshIDs)
+
+        let baselineCount = previousAppIDs.count
+        NSLog("[SmartDelete] baseline: %d, fresh: %d, removed: %d", baselineCount, freshIDs.count, removedIDs.count)
 
         if freshApps != allApps {
             allApps = freshApps
@@ -204,14 +220,28 @@ final class AppState {
         let fm = FileManager.default
 
         for id in removedIDs {
-            guard let app = oldApps.first(where: { $0.id == id }) else { continue }
-            // Skip system apps and GarbageTruck itself (cheap, in-memory)
-            if app.isSystemApp || app.id == selfBundleURL { continue }
-            // Skip apps that are still running
-            if runningAppDetector.isRunning(bundleIdentifier: app.bundleIdentifier) { continue }
-            // Skip if the .app still exists on disk (e.g. moved, not deleted)
-            if fm.fileExists(atPath: app.id.path()) { continue }
+            guard let app = oldApps.first(where: { $0.id == id }) else {
+                NSLog("[SmartDelete] %@: not in old app list, skipping", id.lastPathComponent)
+                continue
+            }
+            if app.isSystemApp {
+                NSLog("[SmartDelete] %@: system app, skipping", app.name)
+                continue
+            }
+            if app.id == selfBundleURL {
+                NSLog("[SmartDelete] %@: is self, skipping", app.name)
+                continue
+            }
+            if runningAppDetector.isRunning(bundleIdentifier: app.bundleIdentifier) {
+                NSLog("[SmartDelete] %@: still running, skipping", app.name)
+                continue
+            }
+            if fm.fileExists(atPath: app.id.path()) {
+                NSLog("[SmartDelete] %@: .app still exists at %@, skipping", app.name, app.id.path())
+                continue
+            }
 
+            NSLog("[SmartDelete] detected removal: %@", app.name)
             smartDeleteApp = app
             return
         }
