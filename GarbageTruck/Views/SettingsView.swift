@@ -1,6 +1,8 @@
 import SwiftUI
 import ServiceManagement
 
+private let fdaSettingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!
+
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @State private var showAppPicker = false
@@ -19,6 +21,31 @@ struct SettingsView: View {
         let appsByBundleID = Dictionary(appState.allApps.map { ($0.bundleIdentifier, $0) }, uniquingKeysWith: { first, _ in first })
 
         Form {
+            Section("Permissions") {
+                if appState.skippedDirectoryCount == 0 {
+                    LabeledContent {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                    } label: {
+                        Text("Full disk access")
+                        Text("All directories can be scanned.")
+                    }
+                } else {
+                    LabeledContent {
+                        Button("Grant access\u{2026}") {
+                            NSWorkspace.shared.open(fdaSettingsURL)
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.yellow)
+                            Text("Full disk access")
+                        }
+                        Text("\(appState.skippedDirectoryCount) directories could not be scanned.")
+                    }
+                }
+            }
+
             Section("Appearance") {
                 Toggle(isOn: $appState.showInDock) {
                     Text("Show in Dock")
