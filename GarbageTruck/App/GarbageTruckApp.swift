@@ -4,10 +4,11 @@ import SwiftUI
 struct GarbageTruckApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var appState = AppState()
+    private let presentationCoordinator = AppPresentationCoordinator()
 
     var body: some Scene {
         WindowGroup {
-            MainView()
+            MainView(presentationCoordinator: presentationCoordinator)
                 .environment(appState)
                 .onAppear {
                     appDelegate.appState = appState

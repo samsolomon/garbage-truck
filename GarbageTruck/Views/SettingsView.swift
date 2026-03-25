@@ -145,6 +145,23 @@ struct SettingsView: View {
                 }
             }
 
+            Section("Appearance") {
+                LabeledContent {
+                    Toggle("", isOn: $appState.wantsMenuBarExtra)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
+                } label: {
+                    VStack(alignment: .leading) {
+                        Text("Show in menu bar")
+                        Text("Adds a menu bar icon while keeping the app visible in the Dock.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
+                }
+            }
+
             Section("Smart delete") {
                 LabeledContent {
                     Toggle("", isOn: $appState.isSmartDeleteEnabled)

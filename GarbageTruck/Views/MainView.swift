@@ -5,6 +5,7 @@ private let fdaSettingsURL = URL(string: "x-apple.systempreferences:com.apple.pr
 private let hasShownFDAPromptKey = "hasShownFDAPrompt"
 
 struct MainView: View {
+    let presentationCoordinator: AppPresentationCoordinator
     @Environment(AppState.self) private var appState
     @State private var showFDASheet = false
     @State private var selectedAppID: URL?
@@ -18,7 +19,11 @@ struct MainView: View {
         NavigationStack(path: $appState.navigationPath) {
             listContent
         }
-        .onAppear { focusedField = .search }
+        .onAppear {
+            appState.configurePresentationCoordinator(presentationCoordinator)
+            focusedField = .search
+            appState.markMainWindowReady()
+        }
         .onChange(of: appState.navigationPath) {
             if appState.navigationPath.isEmpty {
                 appState.searchText = ""

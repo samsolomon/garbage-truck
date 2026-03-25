@@ -1,6 +1,6 @@
 import os
-import ServiceManagement
 import SwiftUI
+import ServiceManagement
 
 private let logger = Logger(subsystem: "com.garbagetruck.app", category: "SmartDelete")
 
@@ -29,11 +29,11 @@ final class AppState {
         get { Set(UserDefaults.standard.stringArray(forKey: Self.protectedAppsKey) ?? []) }
         set { UserDefaults.standard.set(Array(newValue), forKey: Self.protectedAppsKey) }
     }
-    var showInDock: Bool = true {
-        didSet { UserDefaults.standard.set(showInDock, forKey: Self.showInDockKey) }
-    }
-    var showInMenuBar: Bool = true {
-        didSet { UserDefaults.standard.set(showInMenuBar, forKey: Self.showInMenuBarKey) }
+    var wantsMenuBarExtra: Bool = false {
+        didSet {
+            UserDefaults.standard.set(wantsMenuBarExtra, forKey: Self.menuBarExtraKey)
+            presentationCoordinator?.configure(menuBarExtraEnabled: wantsMenuBarExtra)
+        }
     }
     var autoCheckForUpdates: Bool {
         get { UserDefaults.standard.bool(forKey: Self.autoCheckForUpdatesKey) }
@@ -50,13 +50,13 @@ final class AppState {
     private let deletionManager = DeletionManager()
     private let runningAppDetector = RunningAppDetector()
     private var directoryMonitor: DirectoryMonitor?
+    private weak var presentationCoordinator: AppPresentationCoordinator?
 
     private static let maxUndoHistory = 10
     private static let smartDeleteKey = "smartDeleteEnabled"
     private static let autoNavigateKey = "autoNavigateOnSmartDelete"
     private static let protectedAppsKey = "protectedAppBundleIDs"
-    private static let showInDockKey = "showInDock"
-    private static let showInMenuBarKey = "showInMenuBar"
+    private static let menuBarExtraKey = "showInMenuBar"
     private static let autoCheckForUpdatesKey = "autoCheckForUpdates"
     private static let removalCheckInterval: TimeInterval = 5
 
@@ -64,13 +64,20 @@ final class AppState {
         UserDefaults.standard.register(defaults: [
             Self.smartDeleteKey: true,
             Self.autoNavigateKey: true,
-            Self.showInDockKey: true,
-            Self.showInMenuBarKey: true,
+            Self.menuBarExtraKey: false,
             Self.autoCheckForUpdatesKey: true,
         ])
-        showInDock = UserDefaults.standard.bool(forKey: Self.showInDockKey)
-        showInMenuBar = UserDefaults.standard.bool(forKey: Self.showInMenuBarKey)
+        wantsMenuBarExtra = UserDefaults.standard.bool(forKey: Self.menuBarExtraKey)
         logger.notice("AppState initialized")
+    }
+
+    func configurePresentationCoordinator(_ coordinator: AppPresentationCoordinator) {
+        presentationCoordinator = coordinator
+        coordinator.configure(menuBarExtraEnabled: wantsMenuBarExtra)
+    }
+
+    func markMainWindowReady() {
+        presentationCoordinator?.markMainWindowReady()
     }
 
     var filteredApps: [AppInfo] {

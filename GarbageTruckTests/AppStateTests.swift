@@ -49,6 +49,13 @@ struct AppStateTests {
         #expect(state.filteredApps.isEmpty)
     }
 
+    @Test func menuBarExtra_defaultsOff() {
+        UserDefaults.standard.removeObject(forKey: "showInMenuBar")
+        defer { UserDefaults.standard.removeObject(forKey: "showInMenuBar") }
+        let state = AppState()
+        #expect(state.wantsMenuBarExtra == false)
+    }
+
     // MARK: - batchUpdateSizes (7b)
 
     @Test func batchUpdateSizes_updatesCorrectFiles() {
