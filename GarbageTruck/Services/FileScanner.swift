@@ -61,16 +61,6 @@ struct FileScanner: Sendable {
         return a.id.lastPathComponent.localizedCaseInsensitiveCompare(b.id.lastPathComponent) == .orderedAscending
     }
 
-    func totalDeletableSize(for app: AppInfo) async -> Int64 {
-        let result = await scan(app: app)
-        let highConfidenceFiles = result.files.filter { $0.confidence == .high }
-        var total: Int64 = 0
-        for file in highConfidenceFiles {
-            total += Self.computeSize(for: file.id)
-        }
-        return total
-    }
-
     static func computeSize(for url: URL) -> Int64 {
         let fm = FileManager()
         let keys: Set<URLResourceKey> = [.totalFileAllocatedSizeKey, .isDirectoryKey]

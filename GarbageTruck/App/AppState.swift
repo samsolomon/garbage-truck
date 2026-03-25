@@ -35,8 +35,10 @@ final class AppState {
     var showInMenuBar: Bool = true {
         didSet { UserDefaults.standard.set(showInMenuBar, forKey: Self.showInMenuBarKey) }
     }
+    private(set) var appSizes: [URL: Int64] = [:]
 
     private var previousAppIDs: Set<URL> = []
+    private var scanIndexTask: Task<Void, Never>?
     private var lastRemovalCheckDate: Date?
     private let discoveryService = AppDiscoveryService()
     private let fileScanner = FileScanner()
@@ -103,6 +105,8 @@ final class AppState {
         recheckPermissions()
         isLoadingApps = false
         startDirectoryMonitor()
+        scanIndexTask?.cancel()
+        scanIndexTask = Task { await buildScanIndex() }
     }
 
     private func startDirectoryMonitor() {
@@ -124,6 +128,48 @@ final class AppState {
         skippedDirectoryCount = ScanDirectory.userDirectories()
             .filter { !FileManager.default.isReadableFile(atPath: $0.url.path()) }
             .count
+    }
+
+    private func buildScanIndex() async {
+        let apps = allApps
+        let index = await Task.detached {
+            ScanIndex.buildIndex(apps: apps)
+        }.value
+
+        let batchSize = 10
+        let appIDs = apps.map(\.id)
+        var sizes = appSizes
+
+        for startIndex in stride(from: 0, to: appIDs.count, by: batchSize) {
+            if Task.isCancelled { return }
+
+            let endIndex = min(startIndex + batchSize, appIDs.count)
+            let batch = Array(appIDs[startIndex..<endIndex])
+
+            let batchSizes = await withTaskGroup(of: (URL, Int64).self) { group in
+                for appID in batch {
+                    let files = index[appID] ?? []
+                    group.addTask {
+                        let total = files
+                            .filter { $0.confidence == .high }
+                            .reduce(into: Int64(0)) { sum, file in
+                                sum += FileScanner.computeSize(for: file.id)
+                            }
+                        return (appID, total)
+                    }
+                }
+                var results: [(URL, Int64)] = []
+                for await result in group {
+                    results.append(result)
+                }
+                return results
+            }
+
+            for (appID, size) in batchSizes {
+                sizes[appID] = size
+            }
+            appSizes = sizes
+        }
     }
 
     func scanApp(_ app: AppInfo) async {
