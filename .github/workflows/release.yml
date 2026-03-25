@@ -95,8 +95,12 @@ jobs:
 
       - name: Package release DMG
         run: |
+          DMG_STAGING="$RUNNER_TEMP/dmg-staging"
+          mkdir -p "$DMG_STAGING"
+          cp -R "build/export/$APP_NAME" "$DMG_STAGING/"
+          ln -s /Applications "$DMG_STAGING/Applications"
           hdiutil create -volname "Garbage Truck" \
-            -srcfolder "build/export/$APP_NAME" \
+            -srcfolder "$DMG_STAGING" \
             -ov -format UDZO \
             "GarbageTruck-mac.dmg"
 
