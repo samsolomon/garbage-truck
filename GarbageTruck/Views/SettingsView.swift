@@ -11,6 +11,66 @@ struct SettingsView: View {
         let appsByBundleID = Dictionary(appState.allApps.map { ($0.bundleIdentifier, $0) }, uniquingKeysWith: { first, _ in first })
 
         Form {
+            Section("Updates") {
+                let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+
+                switch appState.updateState {
+                case .needsRestart:
+                    LabeledContent {
+                        Button("Restart") {
+                            appState.relaunch()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    } label: {
+                        Text("Update installed")
+                        Text("Restart to finish updating.")
+                    }
+                case .installing:
+                    LabeledContent {
+                        ProgressView()
+                            .controlSize(.small)
+                    } label: {
+                        Text("Installing update\u{2026}")
+                    }
+                case .available(let release):
+                    LabeledContent {
+                        Button("Download & Install") {
+                            Task { await appState.installUpdate() }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    } label: {
+                        Text("\(release.version) available")
+                        Text("You have \(currentVersion).")
+                    }
+                case .checking:
+                    LabeledContent {
+                        ProgressView()
+                            .controlSize(.small)
+                    } label: {
+                        Text("Checking for updates\u{2026}")
+                    }
+                case .idle:
+                    LabeledContent {
+                        Button("Check for Updates") {
+                            Task { await appState.checkForUpdate() }
+                        }
+                    } label: {
+                        Text("Version \(currentVersion)")
+                        Text("Up to date.")
+                    }
+                case .failed(let error):
+                    LabeledContent {
+                        Button("Check for Updates") {
+                            Task { await appState.checkForUpdate() }
+                        }
+                    } label: {
+                        Text("Version \(currentVersion)")
+                        Text(error)
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+
             Section("Permissions") {
                 if appState.skippedDirectoryCount == 0 {
                     LabeledContent {
