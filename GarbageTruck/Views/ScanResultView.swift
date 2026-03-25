@@ -18,7 +18,7 @@ struct ScanResultView: View {
                 ContentUnavailableView(
                     "No files found",
                     systemImage: "checkmark.circle",
-                    description: Text("No leftover files were found for \(scanResult.app.name).")
+                    description: Text(noFilesDescription)
                 )
             } else {
                 List {
@@ -225,5 +225,12 @@ struct ScanResultView: View {
 
     private func formatSize(_ bytes: Int64) -> String {
         ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+    }
+
+    private var noFilesDescription: String {
+        if appState.skippedDirectoryCount > 0 {
+            return "No leftover files were found for \(scanResult.app.name). Some protected directories were skipped during scanning."
+        }
+        return "No leftover files were found for \(scanResult.app.name)."
     }
 }

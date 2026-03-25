@@ -2,7 +2,6 @@ import SwiftUI
 
 struct AppRowView: View {
     let app: AppInfo
-    @Environment(AppState.self) private var appState
 
     var body: some View {
         HStack(spacing: 10) {
@@ -22,9 +21,6 @@ struct AppRowView: View {
             }
 
             Spacer()
-
-            SizeLabel(sizeBytes: appState.appSizes[app.id])
-                .font(.callout)
         }
         .padding(.vertical, 2)
     }
