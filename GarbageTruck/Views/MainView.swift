@@ -35,6 +35,9 @@ struct MainView: View {
             if appState.skippedDirectoryCount > 0 && !UserDefaults.standard.bool(forKey: hasShownFDAPromptKey) {
                 showFDASheet = true
             }
+            if appState.autoCheckForUpdates {
+                await appState.checkForUpdate()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             appState.recheckPermissions()

@@ -92,6 +92,20 @@ struct SettingsView: View {
                         .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     }
                 }
+                LabeledContent {
+                    Toggle("", isOn: $appState.autoCheckForUpdates)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
+                } label: {
+                    VStack(alignment: .leading) {
+                        Text("Check automatically")
+                        Text("Check for updates when the app launches.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
+                }
             }
 
             Section("Permissions") {

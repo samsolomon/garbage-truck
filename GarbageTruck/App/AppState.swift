@@ -35,6 +35,10 @@ final class AppState {
     var showInMenuBar: Bool = true {
         didSet { UserDefaults.standard.set(showInMenuBar, forKey: Self.showInMenuBarKey) }
     }
+    var autoCheckForUpdates: Bool {
+        get { UserDefaults.standard.bool(forKey: Self.autoCheckForUpdatesKey) }
+        set { UserDefaults.standard.set(newValue, forKey: Self.autoCheckForUpdatesKey) }
+    }
     private(set) var appSizes: [URL: Int64] = [:]
     var updateState: UpdateState = .idle
 
@@ -53,6 +57,7 @@ final class AppState {
     private static let protectedAppsKey = "protectedAppBundleIDs"
     private static let showInDockKey = "showInDock"
     private static let showInMenuBarKey = "showInMenuBar"
+    private static let autoCheckForUpdatesKey = "autoCheckForUpdates"
     private static let removalCheckInterval: TimeInterval = 5
 
     init() {
@@ -61,6 +66,7 @@ final class AppState {
             Self.autoNavigateKey: true,
             Self.showInDockKey: true,
             Self.showInMenuBarKey: true,
+            Self.autoCheckForUpdatesKey: true,
         ])
         showInDock = UserDefaults.standard.bool(forKey: Self.showInDockKey)
         showInMenuBar = UserDefaults.standard.bool(forKey: Self.showInMenuBarKey)
@@ -306,6 +312,7 @@ final class AppState {
     }
 
     func checkForUpdate() async {
+        if case .checking = updateState { return }
         updateState = .checking
         do {
             if let release = try await UpdateService.checkForUpdate() {
