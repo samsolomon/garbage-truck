@@ -173,7 +173,6 @@ struct MainView: View {
             }
         }
         .navigationTitle("Garbage Truck")
-        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
         .navigationDestination(for: AppInfo.self) { app in
             Group {
                 if let scan = appState.currentScan, scan.app == app, !appState.isScanning {
@@ -185,7 +184,6 @@ struct MainView: View {
             }
             .navigationTitle("Garbage Truck")
             .navigationBarBackButtonHidden()
-            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
             .task {
                 await appState.scanApp(app)
             }
