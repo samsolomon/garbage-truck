@@ -58,6 +58,11 @@ struct UpdateService: Sendable {
     }
 
     static func downloadAndInstall(from url: URL) async throws {
+        let appDirectory = Bundle.main.bundleURL.deletingLastPathComponent()
+        guard FileManager.default.isWritableFile(atPath: appDirectory.path()) else {
+            throw UpdateError.locationNotWritable
+        }
+
         logger.notice("Downloading update from \(url)")
         let (tempURL, response) = try await URLSession.shared.download(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -157,6 +162,7 @@ enum UpdateError: LocalizedError {
     case downloadFailed
     case mountFailed
     case appNotFound
+    case locationNotWritable
 
     var errorDescription: String? {
         switch self {
@@ -164,6 +170,7 @@ enum UpdateError: LocalizedError {
         case .downloadFailed: "Download failed."
         case .mountFailed: "Could not open the update package."
         case .appNotFound: "Update package was empty."
+        case .locationNotWritable: "Move Garbage Truck to the Applications folder before updating."
         }
     }
 }
