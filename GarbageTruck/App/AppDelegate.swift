@@ -12,14 +12,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        DispatchQueue.global(qos: .utility).async { [self] in
-            checkPreviousRun()
-            writeSentinel("running")
+        DispatchQueue.global(qos: .utility).async {
+            Self.checkPreviousRun()
+            Self.writeSentinel("running")
         }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        writeSentinel("exited")
+        Self.writeSentinel("exited")
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
@@ -35,7 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    nonisolated private func checkPreviousRun() {
+    nonisolated private static func checkPreviousRun() {
         let url = Self.sentinelURL
         do {
             let contents = try String(contentsOf: url, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
@@ -49,7 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    nonisolated private func writeSentinel(_ value: String) {
+    nonisolated private static func writeSentinel(_ value: String) {
         let url = Self.sentinelURL
         let dir = url.deletingLastPathComponent()
         do {

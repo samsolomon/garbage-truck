@@ -116,7 +116,7 @@ final class AppState {
                 let pathBefore = self?.navigationPath ?? []
                 await self?.checkForRemovedApps()
                 if let self, self.isAutoNavigateEnabled, self.navigationPath != pathBefore {
-                    NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                    NSRunningApplication.current.activate(options: [.activateAllWindows])
                     NSApp.mainWindow?.orderFrontRegardless()
                 }
             }
@@ -178,7 +178,7 @@ final class AppState {
     }
 
     func forceTerminateApp(_ app: AppInfo) {
-        runningAppDetector.forceTerminate(bundleIdentifier: app.bundleIdentifier)
+        _ = runningAppDetector.forceTerminate(bundleIdentifier: app.bundleIdentifier)
     }
 
     func batchUpdateSizes(_ updates: [(url: URL, size: Int64)]) {
