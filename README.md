@@ -41,3 +41,7 @@ Application Support, Caches, Containers, Group Containers, Preferences, Logs, Sa
 
 - macOS 14+
 - Full Disk Access (recommended) for complete scanning coverage
+
+## Notes
+
+- A startup hang in early packaged releases was fixed by simplifying launch-time work and app scenes. See `docs/startup-postmortem.md`.
