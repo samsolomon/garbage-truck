@@ -36,6 +36,7 @@ final class AppState {
         didSet { UserDefaults.standard.set(showInMenuBar, forKey: Self.showInMenuBarKey) }
     }
     private(set) var appSizes: [URL: Int64] = [:]
+    var updateState: UpdateState = .idle
 
     private var previousAppIDs: Set<URL> = []
     private var scanIndexTask: Task<Void, Never>?
@@ -302,6 +303,39 @@ final class AppState {
                 logger.error("Failed to \(newValue ? "register" : "unregister") login item: \(error.localizedDescription)")
             }
         }
+    }
+
+    func checkForUpdate() async {
+        updateState = .checking
+        do {
+            if let release = try await UpdateService.checkForUpdate() {
+                updateState = .available(release)
+            } else {
+                updateState = .idle
+            }
+        } catch {
+            updateState = .failed(error.localizedDescription)
+        }
+    }
+
+    func installUpdate() async {
+        guard case .available(let release) = updateState, let url = release.dmgURL else { return }
+        updateState = .installing
+        do {
+            try await UpdateService.downloadAndInstall(from: url)
+            updateState = .needsRestart
+        } catch {
+            updateState = .failed(error.localizedDescription)
+        }
+    }
+
+    func relaunch() {
+        let appPath = Bundle.main.bundleURL.path(percentEncoded: false)
+        let process = Process()
+        process.executableURL = URL(filePath: "/bin/sh")
+        process.arguments = ["-c", "sleep 1 && open \"\(appPath)\""]
+        try? process.run()
+        NSApp.terminate(nil)
     }
 
     func checkForRemovedApps() async {

@@ -31,6 +31,7 @@
 		A10000010000000000000024 /* DirectoryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000024; };
 		A10000010000000000000025 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000025; };
 		A10000010000000000000026 /* ScanIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000026; };
+		A10000010000000000000027 /* UpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000027; };
 		B10000010000000000000001 /* MatchingEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000001; };
 		B10000010000000000000002 /* AppInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000002; };
 		B10000010000000000000003 /* PathSafetyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000003; };
@@ -77,6 +78,7 @@
 		A10000020000000000000024 /* DirectoryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryMonitor.swift; sourceTree = "<group>"; };
 		A10000020000000000000025 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A10000020000000000000026 /* ScanIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanIndex.swift; sourceTree = "<group>"; };
+		A10000020000000000000027 /* UpdateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateService.swift; sourceTree = "<group>"; };
 		A10000030000000000000001 /* GarbageTruck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GarbageTruck.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B10000020000000000000001 /* MatchingEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchingEngineTests.swift; sourceTree = "<group>"; };
 		B10000020000000000000002 /* AppInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfoTests.swift; sourceTree = "<group>"; };
@@ -170,6 +172,7 @@
 				A10000020000000000000012 /* RunningAppDetector.swift */,
 				A10000020000000000000024 /* DirectoryMonitor.swift */,
 				A10000020000000000000026 /* ScanIndex.swift */,
+				A10000020000000000000027 /* UpdateService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -333,6 +336,7 @@
 				A10000010000000000000024 /* DirectoryMonitor.swift in Sources */,
 				A10000010000000000000025 /* SettingsView.swift in Sources */,
 				A10000010000000000000026 /* ScanIndex.swift in Sources */,
+				A10000010000000000000027 /* UpdateService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
