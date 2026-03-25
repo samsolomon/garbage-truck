@@ -34,18 +34,4 @@ Early packaged releases could hang on launch with a spinning beach ball, high CP
 
 ## Safer menu bar reintroduction plan
 
-1. Reintroduce menu bar support as a separate milestone after startup remains stable for multiple releases.
-2. Keep the main app a regular Dock app by default.
-3. Add a menu bar extra only when a single explicit setting enables it.
-4. Do not switch `NSApp` activation policy during `AppState` initialization.
-5. Do not allow an invalid hidden state where both Dock and menu bar entry points are disabled.
-6. Move menu bar state handling behind a dedicated coordinator that owns:
-   - insertion/removal of the menu bar extra
-   - Dock visibility changes
-   - validation of allowed combinations
-7. Add a regression checklist for packaged builds:
-   - first launch from `/Applications`
-   - relaunch with saved preferences
-   - launch from DMG-mounted app
-   - launch with menu bar enabled
-   - launch with Dock hidden and menu bar enabled
+The detailed phased plan lives in `docs/presentation-reintroduction-plan.md`.

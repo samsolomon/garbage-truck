@@ -45,3 +45,4 @@ Application Support, Caches, Containers, Group Containers, Preferences, Logs, Sa
 ## Notes
 
 - A startup hang in early packaged releases was fixed by simplifying launch-time work and app scenes. See `docs/startup-postmortem.md`.
+- The phased plan for safely bringing back menu bar and Dock controls lives in `docs/presentation-reintroduction-plan.md`.
