@@ -61,12 +61,28 @@ struct FileScanner: Sendable {
         return a.id.lastPathComponent.localizedCaseInsensitiveCompare(b.id.lastPathComponent) == .orderedAscending
     }
 
+    // NSCache is thread-safe internally
+    private nonisolated(unsafe) static let sizeCache: NSCache<NSURL, NSNumber> = {
+        let cache = NSCache<NSURL, NSNumber>()
+        cache.countLimit = 5000
+        return cache
+    }()
+
     static func computeSize(for url: URL) -> Int64 {
+        let key = url.standardizedFileURL as NSURL
+        if let cached = sizeCache.object(forKey: key) {
+            return cached.int64Value
+        }
+
         let fm = FileManager()
         let keys: Set<URLResourceKey> = [.totalFileAllocatedSizeKey, .isDirectoryKey]
 
-        guard let values = try? url.resourceValues(forKeys: keys) else { return 0 }
+        guard let values = try? url.resourceValues(forKeys: keys) else {
+            sizeCache.setObject(NSNumber(value: 0), forKey: key)
+            return 0
+        }
 
+        let result: Int64
         if values.isDirectory == true {
             var total: Int64 = 0
             if let enumerator = fm.enumerator(
@@ -82,9 +98,12 @@ struct FileScanner: Sendable {
                     }
                 }
             }
-            return total
+            result = total
         } else {
-            return Int64(values.totalFileAllocatedSize ?? 0)
+            result = Int64(values.totalFileAllocatedSize ?? 0)
         }
+
+        sizeCache.setObject(NSNumber(value: result), forKey: key)
+        return result
     }
 }
