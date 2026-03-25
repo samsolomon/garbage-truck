@@ -51,9 +51,51 @@ struct AppStateTests {
 
     @Test func menuBarExtra_defaultsOff() {
         UserDefaults.standard.removeObject(forKey: "showInMenuBar")
+        UserDefaults.standard.removeObject(forKey: "showInDock")
         defer { UserDefaults.standard.removeObject(forKey: "showInMenuBar") }
+        defer { UserDefaults.standard.removeObject(forKey: "showInDock") }
         let state = AppState()
         #expect(state.wantsMenuBarExtra == false)
+        #expect(state.wantsDockIcon == true)
+    }
+
+    @Test func invalidPresentationPrefs_restoreDockIcon() {
+        UserDefaults.standard.set(false, forKey: "showInMenuBar")
+        UserDefaults.standard.set(false, forKey: "showInDock")
+        defer { UserDefaults.standard.removeObject(forKey: "showInMenuBar") }
+        defer { UserDefaults.standard.removeObject(forKey: "showInDock") }
+
+        let state = AppState()
+
+        #expect(state.wantsMenuBarExtra == false)
+        #expect(state.wantsDockIcon == true)
+    }
+
+    @Test func hidingDock_enablesMenuBar() {
+        UserDefaults.standard.removeObject(forKey: "showInMenuBar")
+        UserDefaults.standard.removeObject(forKey: "showInDock")
+        defer { UserDefaults.standard.removeObject(forKey: "showInMenuBar") }
+        defer { UserDefaults.standard.removeObject(forKey: "showInDock") }
+
+        let state = AppState()
+        state.setDockIconVisible(false)
+
+        #expect(state.wantsDockIcon == false)
+        #expect(state.wantsMenuBarExtra == true)
+    }
+
+    @Test func disablingMenuBar_restoresDockIcon() {
+        UserDefaults.standard.removeObject(forKey: "showInMenuBar")
+        UserDefaults.standard.removeObject(forKey: "showInDock")
+        defer { UserDefaults.standard.removeObject(forKey: "showInMenuBar") }
+        defer { UserDefaults.standard.removeObject(forKey: "showInDock") }
+
+        let state = AppState()
+        state.setDockIconVisible(false)
+        state.setMenuBarExtraEnabled(false)
+
+        #expect(state.wantsMenuBarExtra == false)
+        #expect(state.wantsDockIcon == true)
     }
 
     // MARK: - batchUpdateSizes (7b)

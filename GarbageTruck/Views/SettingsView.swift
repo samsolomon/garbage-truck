@@ -9,6 +9,14 @@ struct SettingsView: View {
     var body: some View {
         @Bindable var appState = appState
         let appsByBundleID = Dictionary(appState.allApps.map { ($0.bundleIdentifier, $0) }, uniquingKeysWith: { first, _ in first })
+        let menuBarBinding = Binding(
+            get: { appState.wantsMenuBarExtra },
+            set: { appState.setMenuBarExtraEnabled($0) }
+        )
+        let dockBinding = Binding(
+            get: { appState.wantsDockIcon },
+            set: { appState.setDockIconVisible($0) }
+        )
 
         Form {
             Section("Updates") {
@@ -147,7 +155,7 @@ struct SettingsView: View {
 
             Section("Appearance") {
                 LabeledContent {
-                    Toggle("", isOn: $appState.wantsMenuBarExtra)
+                    Toggle("", isOn: menuBarBinding)
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
@@ -155,6 +163,20 @@ struct SettingsView: View {
                     VStack(alignment: .leading) {
                         Text("Show in menu bar")
                         Text("Adds a menu bar icon while keeping the app visible in the Dock.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
+                }
+                LabeledContent {
+                    Toggle("", isOn: dockBinding)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
+                } label: {
+                    VStack(alignment: .leading) {
+                        Text("Show in Dock")
+                        Text("You can hide the Dock icon only while menu bar access stays enabled.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }

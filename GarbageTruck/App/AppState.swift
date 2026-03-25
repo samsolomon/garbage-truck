@@ -29,12 +29,8 @@ final class AppState {
         get { Set(UserDefaults.standard.stringArray(forKey: Self.protectedAppsKey) ?? []) }
         set { UserDefaults.standard.set(Array(newValue), forKey: Self.protectedAppsKey) }
     }
-    var wantsMenuBarExtra: Bool = false {
-        didSet {
-            UserDefaults.standard.set(wantsMenuBarExtra, forKey: Self.menuBarExtraKey)
-            presentationCoordinator?.configure(menuBarExtraEnabled: wantsMenuBarExtra)
-        }
-    }
+    private(set) var wantsMenuBarExtra = false
+    private(set) var wantsDockIcon = true
     var autoCheckForUpdates: Bool {
         get { UserDefaults.standard.bool(forKey: Self.autoCheckForUpdatesKey) }
         set { UserDefaults.standard.set(newValue, forKey: Self.autoCheckForUpdatesKey) }
@@ -57,6 +53,7 @@ final class AppState {
     private static let autoNavigateKey = "autoNavigateOnSmartDelete"
     private static let protectedAppsKey = "protectedAppBundleIDs"
     private static let menuBarExtraKey = "showInMenuBar"
+    private static let dockIconKey = "showInDock"
     private static let autoCheckForUpdatesKey = "autoCheckForUpdates"
     private static let removalCheckInterval: TimeInterval = 5
 
@@ -65,19 +62,38 @@ final class AppState {
             Self.smartDeleteKey: true,
             Self.autoNavigateKey: true,
             Self.menuBarExtraKey: false,
+            Self.dockIconKey: true,
             Self.autoCheckForUpdatesKey: true,
         ])
-        wantsMenuBarExtra = UserDefaults.standard.bool(forKey: Self.menuBarExtraKey)
+        let storedMenuBarExtra = UserDefaults.standard.bool(forKey: Self.menuBarExtraKey)
+        let storedDockIcon = UserDefaults.standard.bool(forKey: Self.dockIconKey)
+        let normalized = Self.normalizePresentationPreferences(
+            menuBarExtraEnabled: storedMenuBarExtra,
+            dockIconVisible: storedDockIcon
+        )
+        wantsMenuBarExtra = normalized.menuBarExtraEnabled
+        wantsDockIcon = normalized.dockIconVisible
+        persistPresentationPreferences()
         logger.notice("AppState initialized")
     }
 
     func configurePresentationCoordinator(_ coordinator: AppPresentationCoordinator) {
         presentationCoordinator = coordinator
-        coordinator.configure(menuBarExtraEnabled: wantsMenuBarExtra)
+        coordinator.configure(menuBarExtraEnabled: wantsMenuBarExtra, dockIconVisible: wantsDockIcon)
     }
 
     func markMainWindowReady() {
         presentationCoordinator?.markMainWindowReady()
+    }
+
+    func setMenuBarExtraEnabled(_ isEnabled: Bool) {
+        let dockIconVisible = isEnabled ? wantsDockIcon : true
+        updatePresentationPreferences(menuBarExtraEnabled: isEnabled, dockIconVisible: dockIconVisible)
+    }
+
+    func setDockIconVisible(_ isVisible: Bool) {
+        let menuBarExtraEnabled = isVisible ? wantsMenuBarExtra : true
+        updatePresentationPreferences(menuBarExtraEnabled: menuBarExtraEnabled, dockIconVisible: isVisible)
     }
 
     var filteredApps: [AppInfo] {
@@ -248,6 +264,38 @@ final class AppState {
         var ids = protectedAppBundleIDs
         ids.remove(bundleID)
         protectedAppBundleIDs = ids
+    }
+
+    private func updatePresentationPreferences(menuBarExtraEnabled: Bool, dockIconVisible: Bool) {
+        let normalized = Self.normalizePresentationPreferences(
+            menuBarExtraEnabled: menuBarExtraEnabled,
+            dockIconVisible: dockIconVisible
+        )
+        guard normalized.menuBarExtraEnabled != wantsMenuBarExtra || normalized.dockIconVisible != wantsDockIcon else {
+            return
+        }
+        wantsMenuBarExtra = normalized.menuBarExtraEnabled
+        wantsDockIcon = normalized.dockIconVisible
+        persistPresentationPreferences()
+        presentationCoordinator?.configure(
+            menuBarExtraEnabled: wantsMenuBarExtra,
+            dockIconVisible: wantsDockIcon
+        )
+    }
+
+    private func persistPresentationPreferences() {
+        UserDefaults.standard.set(wantsMenuBarExtra, forKey: Self.menuBarExtraKey)
+        UserDefaults.standard.set(wantsDockIcon, forKey: Self.dockIconKey)
+    }
+
+    private static func normalizePresentationPreferences(
+        menuBarExtraEnabled: Bool,
+        dockIconVisible: Bool
+    ) -> (menuBarExtraEnabled: Bool, dockIconVisible: Bool) {
+        if !menuBarExtraEnabled && !dockIconVisible {
+            return (false, true)
+        }
+        return (menuBarExtraEnabled, dockIconVisible)
     }
 
     var launchAtLogin: Bool {

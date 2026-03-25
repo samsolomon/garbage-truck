@@ -4,26 +4,35 @@ import AppKit
 final class AppPresentationCoordinator: NSObject {
     private var statusItem: NSStatusItem?
     private var wantsMenuBarExtra = false
+    private var wantsDockIcon = true
     private var isMainWindowReady = false
 
-    func configure(menuBarExtraEnabled: Bool) {
+    func configure(menuBarExtraEnabled: Bool, dockIconVisible: Bool) {
         wantsMenuBarExtra = menuBarExtraEnabled
-        applyMenuBarStateIfPossible()
+        wantsDockIcon = dockIconVisible
+        applyPresentationStateIfPossible()
     }
 
     func markMainWindowReady() {
         guard !isMainWindowReady else { return }
         isMainWindowReady = true
-        applyMenuBarStateIfPossible()
+        applyPresentationStateIfPossible()
     }
 
-    private func applyMenuBarStateIfPossible() {
+    private func applyPresentationStateIfPossible() {
         guard isMainWindowReady else { return }
         if wantsMenuBarExtra {
             installStatusItemIfNeeded()
         } else {
             removeStatusItem()
         }
+        applyDockState()
+    }
+
+    private func applyDockState() {
+        let desiredPolicy: NSApplication.ActivationPolicy = wantsDockIcon ? .regular : .accessory
+        guard NSApp.activationPolicy() != desiredPolicy else { return }
+        NSApp.setActivationPolicy(desiredPolicy)
     }
 
     private func installStatusItemIfNeeded() {
