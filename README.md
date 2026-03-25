@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="GarbageTruck/Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" width="128" height="128" alt="Garbage Truck icon">
+  <img src="icon.png" width="128" height="128" alt="Garbage Truck icon">
 </p>
 
 # Garbage Truck
