@@ -145,40 +145,6 @@ struct SettingsView: View {
                 }
             }
 
-            Section("Appearance") {
-                LabeledContent {
-                    Toggle("", isOn: $appState.showInDock)
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                        .onChange(of: appState.showInDock) { _, newValue in
-                            NSApp.setActivationPolicy(newValue ? .regular : .accessory)
-                        }
-                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
-                } label: {
-                    VStack(alignment: .leading) {
-                        Text("Show in Dock")
-                        Text("Display the app icon in the Dock.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
-                }
-                LabeledContent {
-                    Toggle("", isOn: $appState.showInMenuBar)
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
-                } label: {
-                    VStack(alignment: .leading) {
-                        Text("Show in menu bar")
-                        Text("Add a menu bar icon for quick access.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
-                }
-            }
-
             Section("Smart delete") {
                 LabeledContent {
                     Toggle("", isOn: $appState.isSmartDeleteEnabled)

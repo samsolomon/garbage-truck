@@ -70,18 +70,6 @@ final class AppState {
         ])
         showInDock = UserDefaults.standard.bool(forKey: Self.showInDockKey)
         showInMenuBar = UserDefaults.standard.bool(forKey: Self.showInMenuBarKey)
-        if !showInDock {
-            DispatchQueue.main.async {
-                NSApp.setActivationPolicy(.accessory)
-            }
-        }
-        if SMAppService.mainApp.status == .notRegistered {
-            do {
-                try SMAppService.mainApp.register()
-            } catch {
-                logger.error("Failed to register login item: \(error.localizedDescription)")
-            }
-        }
         logger.notice("AppState initialized")
     }
 
