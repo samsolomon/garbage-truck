@@ -21,9 +21,15 @@ struct SettingsView: View {
                             appState.relaunch()
                         }
                         .buttonStyle(.borderedProminent)
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     } label: {
-                        Text("Update installed")
-                        Text("Restart to finish updating.")
+                        VStack(alignment: .leading) {
+                            Text("Update installed")
+                            Text("Restart to finish updating.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     }
                 case .installing:
                     LabeledContent {
@@ -38,9 +44,15 @@ struct SettingsView: View {
                             Task { await appState.installUpdate() }
                         }
                         .buttonStyle(.borderedProminent)
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     } label: {
-                        Text("\(release.version) available")
-                        Text("You have \(currentVersion).")
+                        VStack(alignment: .leading) {
+                            Text("\(release.version) available")
+                            Text("You have \(currentVersion).")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     }
                 case .checking:
                     LabeledContent {
@@ -54,19 +66,30 @@ struct SettingsView: View {
                         Button("Check for Updates") {
                             Task { await appState.checkForUpdate() }
                         }
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     } label: {
-                        Text("Version \(currentVersion)")
-                        Text("Up to date.")
+                        VStack(alignment: .leading) {
+                            Text("Version \(currentVersion)")
+                            Text("Up to date.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     }
                 case .failed(let error):
                     LabeledContent {
                         Button("Check for Updates") {
                             Task { await appState.checkForUpdate() }
                         }
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     } label: {
-                        Text("Version \(currentVersion)")
-                        Text(error)
-                            .foregroundStyle(.red)
+                        VStack(alignment: .leading) {
+                            Text("Version \(currentVersion)")
+                            Text(error)
+                                .font(.subheadline)
+                                .foregroundStyle(.red)
+                        }
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     }
                 }
             }
@@ -76,53 +99,115 @@ struct SettingsView: View {
                     LabeledContent {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(.green)
+                            .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     } label: {
-                        Text("Full disk access")
-                        Text("All directories can be scanned.")
+                        VStack(alignment: .leading) {
+                            Text("Full disk access")
+                            Text("All directories can be scanned.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     }
                 } else {
                     LabeledContent {
                         Button("Grant access\u{2026}") {
                             NSWorkspace.shared.open(fdaSettingsURL)
                         }
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.yellow)
-                            Text("Full disk access")
+                        VStack(alignment: .leading) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundStyle(.yellow)
+                                Text("Full disk access")
+                            }
+                            Text("\(appState.skippedDirectoryCount) directories could not be scanned.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                         }
-                        Text("\(appState.skippedDirectoryCount) directories could not be scanned.")
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                     }
                 }
             }
 
             Section("Appearance") {
-                Toggle(isOn: $appState.showInDock) {
-                    Text("Show in Dock")
-                    Text("Display the app icon in the Dock.")
+                LabeledContent {
+                    Toggle("", isOn: $appState.showInDock)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .onChange(of: appState.showInDock) { _, newValue in
+                            NSApp.setActivationPolicy(newValue ? .regular : .accessory)
+                        }
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
+                } label: {
+                    VStack(alignment: .leading) {
+                        Text("Show in Dock")
+                        Text("Display the app icon in the Dock.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                 }
-                .onChange(of: appState.showInDock) { _, newValue in
-                    NSApp.setActivationPolicy(newValue ? .regular : .accessory)
-                }
-                Toggle(isOn: $appState.showInMenuBar) {
-                    Text("Show in menu bar")
-                    Text("Add a menu bar icon for quick access.")
+                LabeledContent {
+                    Toggle("", isOn: $appState.showInMenuBar)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
+                } label: {
+                    VStack(alignment: .leading) {
+                        Text("Show in menu bar")
+                        Text("Add a menu bar icon for quick access.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                 }
             }
 
             Section("Smart delete") {
-                Toggle(isOn: $appState.isSmartDeleteEnabled) {
-                    Text("Enable smart delete")
-                    Text("Detect when apps are removed and find leftover files.")
+                LabeledContent {
+                    Toggle("", isOn: $appState.isSmartDeleteEnabled)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
+                } label: {
+                    VStack(alignment: .leading) {
+                        Text("Enable smart delete")
+                        Text("Detect when apps are removed and find leftover files.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                 }
-                Toggle(isOn: $appState.isAutoNavigateEnabled) {
-                    Text("Automatically show cleanup view")
-                    Text("Open the cleanup view when leftover files are found.")
+                LabeledContent {
+                    Toggle("", isOn: $appState.isAutoNavigateEnabled)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
+                } label: {
+                    VStack(alignment: .leading) {
+                        Text("Automatically show cleanup view")
+                        Text("Open the cleanup view when leftover files are found.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                 }
                 .disabled(!appState.isSmartDeleteEnabled)
-                Toggle(isOn: $appState.launchAtLogin) {
-                    Text("Launch at login")
-                    Text("Start automatically when you log in.")
+                LabeledContent {
+                    Toggle("", isOn: $appState.launchAtLogin)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
+                } label: {
+                    VStack(alignment: .leading) {
+                        Text("Launch at login")
+                        Text("Start automatically when you log in.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
                 }
             }
 
