@@ -7,6 +7,7 @@ private let hasShownFDAPromptKey = "hasShownFDAPrompt"
 struct MainView: View {
     let presentationCoordinator: AppPresentationCoordinator
     @Environment(AppState.self) private var appState
+    @Environment(\.openWindow) private var openWindow
     @State private var showFDASheet = false
     @State private var selectedAppID: URL?
 
@@ -21,6 +22,9 @@ struct MainView: View {
         }
         .onAppear {
             appState.configurePresentationCoordinator(presentationCoordinator)
+            presentationCoordinator.setOpenMainWindowAction {
+                openWindow(id: "main")
+            }
             focusedField = .search
             appState.markMainWindowReady()
         }

@@ -6,6 +6,7 @@ final class AppPresentationCoordinator: NSObject {
     private var wantsMenuBarExtra = false
     private var wantsDockIcon = true
     private var isMainWindowReady = false
+    private var openMainWindowAction: (() -> Void)?
 
     func configure(menuBarExtraEnabled: Bool, dockIconVisible: Bool) {
         wantsMenuBarExtra = menuBarExtraEnabled
@@ -17,6 +18,10 @@ final class AppPresentationCoordinator: NSObject {
         guard !isMainWindowReady else { return }
         isMainWindowReady = true
         applyPresentationStateIfPossible()
+    }
+
+    func setOpenMainWindowAction(_ action: @escaping () -> Void) {
+        openMainWindowAction = action
     }
 
     private func applyPresentationStateIfPossible() {
@@ -64,21 +69,33 @@ final class AppPresentationCoordinator: NSObject {
         self.statusItem = nil
     }
 
-    @objc private func openMainWindow() {
+    func revealMainWindow() {
         NSRunningApplication.current.activate(options: [.activateAllWindows])
         if let window = NSApp.windows.first(where: { $0.canBecomeMain }) {
             window.makeKeyAndOrderFront(nil)
             return
         }
-        NSApp.windows.first?.makeKeyAndOrderFront(nil)
+        if let window = NSApp.windows.first {
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+        openMainWindowAction?()
     }
 
-    @objc private func openSettings() {
+    func revealSettings() {
         NSRunningApplication.current.activate(options: [.activateAllWindows])
         if NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil) {
             return
         }
         _ = NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+    }
+
+    @objc private func openMainWindow() {
+        revealMainWindow()
+    }
+
+    @objc private func openSettings() {
+        revealSettings()
     }
 
     @objc private func quitApp() {

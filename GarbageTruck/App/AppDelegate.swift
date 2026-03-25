@@ -3,6 +3,36 @@ import os
 
 private let logger = Logger(subsystem: "com.garbagetruck.app", category: "AppDelegate")
 
+private enum AppRoute {
+    case showList
+    case showApp(appURL: URL?, bundleIdentifier: String?, appName: String?)
+
+    init?(url: URL) {
+        guard url.scheme == "garbagetruck" else { return nil }
+        switch url.host {
+        case "show-list":
+            self = .showList
+        case "show-app":
+            guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+                return nil
+            }
+            let path = components.queryItems?.first(where: { $0.name == "path" })?.value
+            let bundleIdentifier = components.queryItems?.first(where: { $0.name == "bundleID" })?.value
+            let appName = components.queryItems?.first(where: { $0.name == "name" })?.value
+            let appURL = path.map { URL(fileURLWithPath: $0).standardizedFileURL.resolvingSymlinksInPath() }
+            if let appURL, appURL.pathExtension != "app" {
+                return nil
+            }
+            guard appURL != nil || bundleIdentifier != nil else {
+                return nil
+            }
+            self = .showApp(appURL: appURL, bundleIdentifier: bundleIdentifier, appName: appName)
+        default:
+            return nil
+        }
+    }
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var appState: AppState?
 
@@ -18,21 +48,54 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func applicationDidBecomeActive(_ notification: Notification) {
+        guard let appState else { return }
+        let hasVisibleWindows = NSApp.windows.contains { $0.isVisible }
+        guard !hasVisibleWindows else { return }
+        Task { @MainActor in
+            appState.handleActivationWithoutVisibleWindows()
+        }
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         Self.writeSentinel("exited")
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
-        guard let url = urls.first,
-              url.isFileURL,
-              url.pathExtension == "app"
-        else { return }
-        let resolved = url.standardizedFileURL.resolvingSymlinksInPath()
-        guard resolved.pathExtension == "app" else { return }
         guard let appState else { return }
-        Task { @MainActor in
-            await appState.scanAppByURL(resolved)
+
+        for url in urls {
+            if let route = AppRoute(url: url) {
+                Task { @MainActor in
+                    switch route {
+                    case .showList:
+                        appState.handleShowListRoute()
+                    case .showApp(let appURL, let bundleIdentifier, let appName):
+                        await appState.handleShowAppRoute(
+                            appURL: appURL,
+                            bundleIdentifier: bundleIdentifier,
+                            appName: appName
+                        )
+                    }
+                }
+                continue
+            }
+
+            guard url.isFileURL else { continue }
+            let resolved = url.standardizedFileURL.resolvingSymlinksInPath()
+            guard resolved.pathExtension == "app" else { continue }
+            Task { @MainActor in
+                await appState.handleShowAppRoute(appURL: resolved, bundleIdentifier: nil, appName: nil)
+            }
         }
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        guard !flag, let appState else { return true }
+        Task { @MainActor in
+            appState.handleActivationWithoutVisibleWindows()
+        }
+        return false
     }
 
     nonisolated private static func checkPreviousRun() {

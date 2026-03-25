@@ -98,6 +98,36 @@ struct AppStateTests {
         #expect(state.wantsDockIcon == true)
     }
 
+    @Test func handleShowAppRoute_reusesExistingAppByBundleID() async {
+        let state = AppState()
+        let existingApp = TestFixtures.makeApp(name: "Slack", bundleID: "com.tinyspeck.slackmacgap")
+        state.allApps = [existingApp]
+
+        await state.handleShowAppRoute(
+            appURL: nil,
+            bundleIdentifier: "com.tinyspeck.slackmacgap",
+            appName: "Slack"
+        )
+
+        #expect(state.navigationPath == [existingApp])
+        #expect(state.allApps.count == 1)
+    }
+
+    @Test func handleShowAppRoute_createsFallbackForDeletedApp() async {
+        let state = AppState()
+
+        await state.handleShowAppRoute(
+            appURL: nil,
+            bundleIdentifier: "com.example.deletedapp",
+            appName: "Deleted App"
+        )
+
+        #expect(state.navigationPath.count == 1)
+        #expect(state.navigationPath.first?.bundleIdentifier == "com.example.deletedapp")
+        #expect(state.navigationPath.first?.name == "Deleted App")
+        #expect(state.allApps.contains(where: { $0.bundleIdentifier == "com.example.deletedapp" }))
+    }
+
     // MARK: - batchUpdateSizes (7b)
 
     @Test func batchUpdateSizes_updatesCorrectFiles() {

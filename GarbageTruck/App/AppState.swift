@@ -47,6 +47,7 @@ final class AppState {
     private let runningAppDetector = RunningAppDetector()
     private var directoryMonitor: DirectoryMonitor?
     private weak var presentationCoordinator: AppPresentationCoordinator?
+    private var pendingActivationTarget: ActivationTarget?
 
     private static let maxUndoHistory = 10
     private static let smartDeleteKey = "smartDeleteEnabled"
@@ -56,6 +57,11 @@ final class AppState {
     private static let dockIconKey = "showInDock"
     private static let autoCheckForUpdatesKey = "autoCheckForUpdates"
     private static let removalCheckInterval: TimeInterval = 5
+
+    private enum ActivationTarget {
+        case list
+        case currentDestination
+    }
 
     init() {
         UserDefaults.standard.register(defaults: [
@@ -96,6 +102,44 @@ final class AppState {
         updatePresentationPreferences(menuBarExtraEnabled: menuBarExtraEnabled, dockIconVisible: isVisible)
     }
 
+    func revealListView() {
+        navigationPath = []
+        pendingActivationTarget = .list
+        presentationCoordinator?.revealMainWindow()
+    }
+
+    func handleShowListRoute() {
+        revealListView()
+    }
+
+    func revealCurrentDestination() {
+        pendingActivationTarget = .currentDestination
+        presentationCoordinator?.revealMainWindow()
+    }
+
+    func handleShowAppRoute(appURL: URL?, bundleIdentifier: String?, appName: String?) async {
+        guard let app = resolvedRouteAppInfo(appURL: appURL, bundleIdentifier: bundleIdentifier, appName: appName) else {
+            return
+        }
+
+        if !allApps.contains(where: { $0.id == app.id }) {
+            allApps.append(app)
+            allApps.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        }
+
+        navigationPath = [app]
+        revealCurrentDestination()
+    }
+
+    func handleActivationWithoutVisibleWindows() {
+        let target = pendingActivationTarget ?? .list
+        pendingActivationTarget = nil
+        if case .list = target {
+            navigationPath = []
+        }
+        presentationCoordinator?.revealMainWindow()
+    }
+
     var filteredApps: [AppInfo] {
         if searchText.isEmpty { return allApps }
         return allApps.filter { app in
@@ -132,8 +176,7 @@ final class AppState {
                 let pathBefore = self?.navigationPath ?? []
                 await self?.checkForRemovedApps()
                 if let self, self.isAutoNavigateEnabled, self.navigationPath != pathBefore {
-                    NSRunningApplication.current.activate(options: [.activateAllWindows])
-                    NSApp.mainWindow?.orderFrontRegardless()
+                    self.revealCurrentDestination()
                 }
             }
         }
@@ -178,6 +221,7 @@ final class AppState {
         }
 
         navigationPath = [app]
+        revealCurrentDestination()
     }
 
     func isAppRunning(_ app: AppInfo) -> Bool {
@@ -296,6 +340,39 @@ final class AppState {
             return (false, true)
         }
         return (menuBarExtraEnabled, dockIconVisible)
+    }
+
+    private func resolvedRouteAppInfo(appURL: URL?, bundleIdentifier: String?, appName: String?) -> AppInfo? {
+        if let appURL,
+           let discoveredApp = discoveryService.appInfo(from: appURL) {
+            return discoveredApp
+        }
+
+        if let bundleIdentifier,
+           let existingApp = allApps.first(where: { $0.bundleIdentifier == bundleIdentifier }) {
+            return existingApp
+        }
+
+        guard let bundleIdentifier else { return nil }
+
+        let fallbackName = appName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedName: String
+        if let fallbackName, !fallbackName.isEmpty {
+            resolvedName = fallbackName
+        } else {
+            resolvedName = bundleIdentifier.components(separatedBy: ".").last ?? bundleIdentifier
+        }
+
+        let urlHint = appURL ?? URL(fileURLWithPath: "/Applications/\(resolvedName).app")
+        let isSystemApp = bundleIdentifier.hasPrefix("com.apple.")
+
+        return AppInfo(
+            url: urlHint,
+            bundleIdentifier: bundleIdentifier,
+            name: resolvedName,
+            version: nil,
+            isSystemApp: isSystemApp
+        )
     }
 
     var launchAtLogin: Bool {

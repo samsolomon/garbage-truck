@@ -152,3 +152,7 @@ Reintroduce menu bar support first, then optional Dock hiding, without reintrodu
 ## Recommendation
 
 Implement Milestone 1 in a single focused branch and ship it before touching Dock hiding. Treat menu bar support and Dock hiding as separate features, not as one toggle pair.
+
+## Follow-on Hidden Mode Work
+
+The Pearcleaner-style helper plan for true hidden mode lives in `docs/helper-hidden-mode-checklist.md`.

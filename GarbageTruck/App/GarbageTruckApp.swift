@@ -7,7 +7,7 @@ struct GarbageTruckApp: App {
     private let presentationCoordinator = AppPresentationCoordinator()
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main") {
             MainView(presentationCoordinator: presentationCoordinator)
                 .environment(appState)
                 .onAppear {
