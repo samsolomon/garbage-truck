@@ -40,6 +40,32 @@ final class AppPresentationCoordinator: NSObject {
         NSApp.setActivationPolicy(desiredPolicy)
     }
 
+    private func activateForForegroundReveal() {
+        let desiredPolicy: NSApplication.ActivationPolicy = wantsDockIcon ? .regular : .accessory
+        if !wantsDockIcon, NSApp.activationPolicy() != .regular {
+            NSApp.setActivationPolicy(.regular)
+        }
+
+        NSRunningApplication.current.unhide()
+        _ = NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+        NSApp.activate(ignoringOtherApps: true)
+
+        if !wantsDockIcon {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                guard NSApp.activationPolicy() != desiredPolicy else { return }
+                NSApp.setActivationPolicy(desiredPolicy)
+            }
+        }
+    }
+
+    private func elevateWindow(_ window: NSWindow) {
+        window.level = .floating
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            guard window.level == .floating else { return }
+            window.level = .normal
+        }
+    }
+
     private func installStatusItemIfNeeded() {
         guard statusItem == nil else { return }
 
@@ -70,20 +96,24 @@ final class AppPresentationCoordinator: NSObject {
     }
 
     func revealMainWindow() {
-        NSRunningApplication.current.activate(options: [.activateAllWindows])
+        activateForForegroundReveal()
         if let window = NSApp.windows.first(where: { $0.canBecomeMain }) {
-            window.makeKeyAndOrderFront(nil)
+            window.makeKey()
+            window.orderFrontRegardless()
+            elevateWindow(window)
             return
         }
         if let window = NSApp.windows.first {
-            window.makeKeyAndOrderFront(nil)
+            window.makeKey()
+            window.orderFrontRegardless()
+            elevateWindow(window)
             return
         }
         openMainWindowAction?()
     }
 
     func revealSettings() {
-        NSRunningApplication.current.activate(options: [.activateAllWindows])
+        activateForForegroundReveal()
         if NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil) {
             return
         }

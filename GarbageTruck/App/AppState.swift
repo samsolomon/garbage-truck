@@ -49,6 +49,8 @@ final class AppState {
     private var sentinelProcess: Process?
     private weak var presentationCoordinator: AppPresentationCoordinator?
     private var pendingActivationTarget: ActivationTarget?
+    private(set) var hasPresentedMainWindow = false
+    private(set) var hasCompletedInitialLoad = false
 
     private static let maxUndoHistory = 10
     private static let smartDeleteKey = "smartDeleteEnabled"
@@ -90,6 +92,7 @@ final class AppState {
     }
 
     func markMainWindowReady() {
+        hasPresentedMainWindow = true
         presentationCoordinator?.markMainWindowReady()
     }
 
@@ -180,6 +183,7 @@ final class AppState {
         } else {
             stopSentinelIfNeeded()
         }
+        hasCompletedInitialLoad = true
     }
 
     private func startDirectoryMonitor() {

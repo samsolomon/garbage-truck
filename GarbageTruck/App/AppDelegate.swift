@@ -50,6 +50,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidBecomeActive(_ notification: Notification) {
         guard let appState else { return }
+        guard appState.hasPresentedMainWindow else { return }
+        guard appState.hasCompletedInitialLoad else { return }
         let hasVisibleWindows = NSApp.windows.contains { $0.isVisible }
         guard !hasVisibleWindows else { return }
         Task { @MainActor in
@@ -92,6 +94,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         guard !flag, let appState else { return true }
+        guard appState.hasPresentedMainWindow else { return true }
+        guard appState.hasCompletedInitialLoad else { return true }
         Task { @MainActor in
             appState.handleActivationWithoutVisibleWindows()
         }
