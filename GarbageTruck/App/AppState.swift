@@ -94,13 +94,11 @@ final class AppState {
     }
 
     func setMenuBarExtraEnabled(_ isEnabled: Bool) {
-        let dockIconVisible = isEnabled ? wantsDockIcon : true
-        updatePresentationPreferences(menuBarExtraEnabled: isEnabled, dockIconVisible: dockIconVisible)
+        updatePresentationPreferences(menuBarExtraEnabled: isEnabled, dockIconVisible: wantsDockIcon)
     }
 
     func setDockIconVisible(_ isVisible: Bool) {
-        let menuBarExtraEnabled = isVisible ? wantsMenuBarExtra : true
-        updatePresentationPreferences(menuBarExtraEnabled: menuBarExtraEnabled, dockIconVisible: isVisible)
+        updatePresentationPreferences(menuBarExtraEnabled: wantsMenuBarExtra, dockIconVisible: isVisible)
     }
 
     func setSmartDeleteEnabled(_ isEnabled: Bool) {
@@ -363,9 +361,6 @@ final class AppState {
         menuBarExtraEnabled: Bool,
         dockIconVisible: Bool
     ) -> (menuBarExtraEnabled: Bool, dockIconVisible: Bool) {
-        if !menuBarExtraEnabled && !dockIconVisible {
-            return (false, true)
-        }
         return (menuBarExtraEnabled, dockIconVisible)
     }
 

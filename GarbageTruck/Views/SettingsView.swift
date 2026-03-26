@@ -166,7 +166,7 @@ struct SettingsView: View {
                 } label: {
                     VStack(alignment: .leading) {
                         Text("Show in menu bar")
-                        Text("Adds a menu bar icon while keeping the app visible in the Dock.")
+                        Text("Adds a menu bar icon for quick access while Garbage Truck runs in the background.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -180,7 +180,7 @@ struct SettingsView: View {
                 } label: {
                     VStack(alignment: .leading) {
                         Text("Show in Dock")
-                        Text("You can hide the Dock icon only while menu bar access stays enabled.")
+                        Text("Turn this off to keep Garbage Truck hidden until you launch it manually or Smart Delete opens it.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }

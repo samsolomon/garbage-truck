@@ -59,7 +59,7 @@ struct AppStateTests {
         #expect(state.wantsDockIcon == true)
     }
 
-    @Test func invalidPresentationPrefs_restoreDockIcon() {
+    @Test func bothPresentationPrefsCanBeHidden() {
         UserDefaults.standard.set(false, forKey: "showInMenuBar")
         UserDefaults.standard.set(false, forKey: "showInDock")
         defer { UserDefaults.standard.removeObject(forKey: "showInMenuBar") }
@@ -68,10 +68,10 @@ struct AppStateTests {
         let state = AppState()
 
         #expect(state.wantsMenuBarExtra == false)
-        #expect(state.wantsDockIcon == true)
+        #expect(state.wantsDockIcon == false)
     }
 
-    @Test func hidingDock_enablesMenuBar() {
+    @Test func hidingDockDoesNotForceMenuBar() {
         UserDefaults.standard.removeObject(forKey: "showInMenuBar")
         UserDefaults.standard.removeObject(forKey: "showInDock")
         defer { UserDefaults.standard.removeObject(forKey: "showInMenuBar") }
@@ -81,10 +81,10 @@ struct AppStateTests {
         state.setDockIconVisible(false)
 
         #expect(state.wantsDockIcon == false)
-        #expect(state.wantsMenuBarExtra == true)
+        #expect(state.wantsMenuBarExtra == false)
     }
 
-    @Test func disablingMenuBar_restoresDockIcon() {
+    @Test func disablingMenuBarDoesNotRestoreDock() {
         UserDefaults.standard.removeObject(forKey: "showInMenuBar")
         UserDefaults.standard.removeObject(forKey: "showInDock")
         defer { UserDefaults.standard.removeObject(forKey: "showInMenuBar") }
@@ -95,7 +95,7 @@ struct AppStateTests {
         state.setMenuBarExtraEnabled(false)
 
         #expect(state.wantsMenuBarExtra == false)
-        #expect(state.wantsDockIcon == true)
+        #expect(state.wantsDockIcon == false)
     }
 
     @Test func handleShowAppRoute_reusesExistingAppByBundleID() async {
