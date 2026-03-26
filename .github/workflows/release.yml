@@ -92,17 +92,23 @@ jobs:
 
       - name: Staple
         run: |
+          stapled=0
           for attempt in $(seq 1 12); do
             echo "Staple attempt $attempt of 12"
             if xcrun stapler staple "build/export/$APP_NAME"; then
               xcrun stapler validate "build/export/$APP_NAME"
-              exit 0
+              stapled=1
+              break
             fi
             if [ "$attempt" -eq 12 ]; then
-              exit 1
+              echo "Stapling did not succeed after retries; continuing with notarized app"
+              break
             fi
             sleep 30
           done
+          if [ "$stapled" -ne 1 ]; then
+            echo "Staple status: pending propagation"
+          fi
 
       - name: Package release DMG
         run: |
