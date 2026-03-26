@@ -33,6 +33,7 @@
 		A10000010000000000000028 /* AppPresentationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000028; };
 		A10000010000000000000027 /* UpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000027; };
 		C10000010000000000000001 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000020000000000000001; };
+		C10000010000000000000002 /* GarbageTruckSentinel in Copy Files */ = {isa = PBXBuildFile; fileRef = C10000030000000000000001 /* GarbageTruckSentinel */; };
 		B10000010000000000000001 /* MatchingEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000001; };
 		B10000010000000000000002 /* AppInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000002; };
 		B10000010000000000000003 /* PathSafetyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000020000000000000003; };
@@ -58,6 +59,19 @@
 			remoteInfo = GarbageTruckSentinel;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A10000070000000000000003 /* Embed Sentinel */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Helpers;
+			dstSubfolderSpec = 1;
+			files = (
+				C10000010000000000000002 /* GarbageTruckSentinel in Copy Files */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A10000020000000000000001 /* GarbageTruckApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarbageTruckApp.swift; sourceTree = "<group>"; };
@@ -124,29 +138,6 @@
 		};
 /* End PBXFrameworksBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		A10000070000000000000003 /* Embed Sentinel */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(BUILT_PRODUCTS_DIR)/GarbageTruckSentinel",
-			);
-			name = "Embed Sentinel";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/GarbageTruckSentinel",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -e\nmkdir -p \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers\"\ncp \"$BUILT_PRODUCTS_DIR/GarbageTruckSentinel\" \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers/GarbageTruckSentinel\"\nchmod +x \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers/GarbageTruckSentinel\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXGroup section */
 		A10000050000000000000000 = {
@@ -577,7 +568,7 @@
 				CODE_SIGN_ENTITLEMENTS = GarbageTruck/GarbageTruck.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -589,7 +580,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.8;
+				MARKETING_VERSION = 0.1.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.garbagetruck.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -606,7 +597,7 @@
 				CODE_SIGN_ENTITLEMENTS = GarbageTruck/GarbageTruck.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -618,7 +609,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.8;
+				MARKETING_VERSION = 0.1.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.garbagetruck.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -670,6 +661,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.garbagetruck.sentinel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
@@ -685,6 +677,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.garbagetruck.sentinel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
