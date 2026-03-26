@@ -92,11 +92,13 @@ jobs:
 
       - name: Staple
         run: |
-          for attempt in 1 2 3 4 5; do
+          for attempt in $(seq 1 12); do
+            echo "Staple attempt $attempt of 12"
             if xcrun stapler staple "build/export/$APP_NAME"; then
+              xcrun stapler validate "build/export/$APP_NAME"
               exit 0
             fi
-            if [ "$attempt" -eq 5 ]; then
+            if [ "$attempt" -eq 12 ]; then
               exit 1
             fi
             sleep 30
