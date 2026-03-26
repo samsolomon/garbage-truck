@@ -91,7 +91,16 @@ jobs:
             --wait
 
       - name: Staple
-        run: xcrun stapler staple "build/export/$APP_NAME"
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if xcrun stapler staple "build/export/$APP_NAME"; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              exit 1
+            fi
+            sleep 30
+          done
 
       - name: Package release DMG
         run: |
