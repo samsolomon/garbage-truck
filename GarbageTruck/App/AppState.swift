@@ -177,13 +177,21 @@ final class AppState {
         recheckPermissions()
         isLoadingApps = false
         startDirectoryMonitor()
-        startSentinelIfNeeded()
+        if isSmartDeleteEnabled {
+            startSentinelIfNeeded()
+        } else {
+            stopSentinelIfNeeded()
+        }
     }
 
     private func startDirectoryMonitor() {
         guard directoryMonitor == nil else { return }
         directoryMonitor = DirectoryMonitor(directories: AppDiscoveryService.applicationDirectories) { [weak self] in
             Task { @MainActor in
+                if let self, self.shouldUseSentinelRouting {
+                    await self.refreshDiscoveredApps()
+                    return
+                }
                 let pathBefore = self?.navigationPath ?? []
                 await self?.checkForRemovedApps()
                 if let self, self.isAutoNavigateEnabled, self.navigationPath != pathBefore {
@@ -198,6 +206,14 @@ final class AppState {
         skippedDirectoryCount = ScanDirectory.userDirectories()
             .filter { !FileManager.default.isReadableFile(atPath: $0.url.path()) }
             .count
+    }
+
+    private func refreshDiscoveredApps() async {
+        let freshApps = await discoveryService.discoverApps()
+        if freshApps != allApps {
+            allApps = freshApps
+        }
+        previousAppIDs = Set(freshApps.map(\.id))
     }
 
     func scanApp(_ app: AppInfo) async {
@@ -460,11 +476,11 @@ final class AppState {
     }
 
     private func stopSentinelIfNeeded() {
-        guard let sentinelProcess else { return }
-        if sentinelProcess.isRunning {
+        if let sentinelProcess, sentinelProcess.isRunning {
             sentinelProcess.terminate()
         }
-        self.sentinelProcess = nil
+        sentinelProcess = nil
+        stopExternalSentinelIfNeeded()
     }
 
     private var bundledSentinelURL: URL? {
@@ -476,6 +492,37 @@ final class AppState {
             return nil
         }
         return helperURL
+    }
+
+    private var shouldUseSentinelRouting: Bool {
+        isSmartDeleteEnabled && bundledSentinelURL != nil
+    }
+
+    private func stopExternalSentinelIfNeeded() {
+        guard let helperURL = bundledSentinelURL else {
+            return
+        }
+
+        let process = Process()
+        let outputPipe = Pipe()
+        process.executableURL = URL(filePath: "/usr/bin/pgrep")
+        process.arguments = ["-f", helperURL.path(percentEncoded: false)]
+        process.standardOutput = outputPipe
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+            let data = outputPipe.fileHandleForReading.readDataToEndOfFile()
+            let output = String(decoding: data, as: UTF8.self)
+            let pids = output
+                .split(whereSeparator: \.isNewline)
+                .compactMap { pid_t($0) }
+            for pid in pids {
+                _ = kill(pid, SIGKILL)
+            }
+        } catch {
+            logger.error("Failed to stop external sentinel helper: \(error.localizedDescription)")
+        }
     }
 
     func checkForRemovedApps() async {
