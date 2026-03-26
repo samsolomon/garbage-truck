@@ -46,6 +46,7 @@ final class AppState {
     private let deletionManager = DeletionManager()
     private let runningAppDetector = RunningAppDetector()
     private var directoryMonitor: DirectoryMonitor?
+    private var sentinelProcess: Process?
     private weak var presentationCoordinator: AppPresentationCoordinator?
     private var pendingActivationTarget: ActivationTarget?
 
@@ -100,6 +101,15 @@ final class AppState {
     func setDockIconVisible(_ isVisible: Bool) {
         let menuBarExtraEnabled = isVisible ? wantsMenuBarExtra : true
         updatePresentationPreferences(menuBarExtraEnabled: menuBarExtraEnabled, dockIconVisible: isVisible)
+    }
+
+    func setSmartDeleteEnabled(_ isEnabled: Bool) {
+        UserDefaults.standard.set(isEnabled, forKey: Self.smartDeleteKey)
+        if isEnabled {
+            startSentinelIfNeeded()
+        } else {
+            stopSentinelIfNeeded()
+        }
     }
 
     func revealListView() {
@@ -167,6 +177,7 @@ final class AppState {
         recheckPermissions()
         isLoadingApps = false
         startDirectoryMonitor()
+        startSentinelIfNeeded()
     }
 
     private func startDirectoryMonitor() {
@@ -422,6 +433,49 @@ final class AppState {
         process.arguments = ["-c", "sleep 1 && open \"\(appPath)\""]
         try? process.run()
         NSApp.terminate(nil)
+    }
+
+    private func startSentinelIfNeeded() {
+        guard isSmartDeleteEnabled else { return }
+        guard sentinelProcess?.isRunning != true else { return }
+        guard let helperURL = bundledSentinelURL else {
+            logger.error("Bundled sentinel helper not found")
+            return
+        }
+
+        let process = Process()
+        process.executableURL = helperURL
+        process.terminationHandler = { [weak self] _ in
+            Task { @MainActor in
+                self?.sentinelProcess = nil
+            }
+        }
+
+        do {
+            try process.run()
+            sentinelProcess = process
+        } catch {
+            logger.error("Failed to start sentinel helper: \(error.localizedDescription)")
+        }
+    }
+
+    private func stopSentinelIfNeeded() {
+        guard let sentinelProcess else { return }
+        if sentinelProcess.isRunning {
+            sentinelProcess.terminate()
+        }
+        self.sentinelProcess = nil
+    }
+
+    private var bundledSentinelURL: URL? {
+        let helperURL = Bundle.main.bundleURL
+            .appending(path: "Contents")
+            .appending(path: "Helpers")
+            .appending(path: "GarbageTruckSentinel")
+        guard FileManager.default.isExecutableFile(atPath: helperURL.path(percentEncoded: false)) else {
+            return nil
+        }
+        return helperURL
     }
 
     func checkForRemovedApps() async {

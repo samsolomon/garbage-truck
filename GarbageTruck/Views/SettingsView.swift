@@ -17,6 +17,10 @@ struct SettingsView: View {
             get: { appState.wantsDockIcon },
             set: { appState.setDockIconVisible($0) }
         )
+        let smartDeleteBinding = Binding(
+            get: { appState.isSmartDeleteEnabled },
+            set: { appState.setSmartDeleteEnabled($0) }
+        )
 
         Form {
             Section("Updates") {
@@ -186,7 +190,7 @@ struct SettingsView: View {
 
             Section("Smart delete") {
                 LabeledContent {
-                    Toggle("", isOn: $appState.isSmartDeleteEnabled)
+                    Toggle("", isOn: smartDeleteBinding)
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] }
